@@ -33,7 +33,7 @@
         body:not(.rol-admin) .solo-admin { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans antialiased">
+<body class="bg-white text-gray-900 min-h-screen font-sans antialiased">
 
     <!-- ============ CONFIGURACIÓN DEL SERVIDOR ============ -->
     <script>
@@ -43,28 +43,28 @@
     </script>
 
     <!-- ================= PANTALLA DE ACCESO ================= -->
-    <div id="loginScreen" class="hidden fixed inset-0 z-[200] bg-gray-900 items-center justify-center p-4">
-        <div class="w-full max-w-sm bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-2xl">
+    <div id="loginScreen" class="hidden fixed inset-0 z-[200] bg-white items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-2xl">
             <div class="text-center mb-5">
                 <div class="text-4xl mb-1">🚒</div>
                 <h1 class="text-xl font-bold tracking-wide">INVENTARIO HAZMAT</h1>
-                <p class="text-xs text-gray-400 mt-1">Contenedor operativo · acceso restringido</p>
+                <p class="text-xs text-gray-600 mt-1">Contenedor operativo · acceso restringido</p>
             </div>
-            <label class="block text-xs font-semibold text-gray-400 mb-1">Clave de acceso</label>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Clave de acceso</label>
             <input type="password" id="inputClave" autocomplete="current-password" placeholder="••••••••"
                 onkeydown="if(event.key==='Enter') hacerLogin()"
-                class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 mb-2">
-            <label class="flex items-center gap-2 text-xs text-gray-400 mb-3 cursor-pointer">
+                class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 mb-2">
+            <label class="flex items-center gap-2 text-xs text-gray-600 mb-3 cursor-pointer">
                 <input type="checkbox" id="recordarClave" checked class="accent-red-500"> Recordar en este dispositivo
             </label>
-            <p id="loginError" class="hidden text-xs text-red-400 mb-3"></p>
+            <p id="loginError" class="hidden text-xs text-red-600 mb-3"></p>
             <button onclick="hacerLogin()" id="btnLogin" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded font-bold text-sm transition cursor-pointer">Entrar</button>
-            <button onclick="abrirConfig()" class="w-full text-xs text-gray-500 hover:text-gray-300 mt-3 underline">⚙️ Configurar servidor</button>
+            <button onclick="abrirConfig()" class="w-full text-xs text-gray-500 hover:text-gray-700 mt-3 underline">⚙️ Configurar servidor</button>
         </div>
     </div>
 
     <!-- ================= CABECERA ================= -->
-    <header class="bg-red-700 shadow-lg p-3 sm:p-4 sticky top-0 z-50">
+    <header class="bg-red-700 text-white shadow-lg p-3 sm:p-4 sticky top-0 z-50">
         <div class="container mx-auto flex flex-wrap justify-between items-center gap-3">
             <h1 class="text-base sm:text-xl font-bold tracking-wider flex items-center gap-2">
                 🚒 INVENTARIO HAZMAT
@@ -89,19 +89,19 @@
     </div>
 
     <!-- Selector de vehículo (flota) -->
-    <div id="barraVehiculo" class="hidden bg-gray-800/90 border-b border-gray-700 px-4 py-2">
+    <div id="barraVehiculo" class="hidden bg-gray-50 border-b border-gray-200 px-4 py-2">
         <div class="container mx-auto max-w-6xl flex flex-wrap items-center gap-2">
-            <span class="text-sm font-semibold text-gray-300">🚚 Vehículo:</span>
-            <select id="selVehiculo" onchange="cambiarVehiculo()" class="flex-1 min-w-[180px] bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 cursor-pointer">
+            <span class="text-sm font-semibold text-gray-700">🚚 Vehículo:</span>
+            <select id="selVehiculo" onchange="cambiarVehiculo()" class="flex-1 min-w-[180px] bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 cursor-pointer">
                 <option value="">— Sin vehículos —</option>
             </select>
-            <button onclick="abrirQR()" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🔳 QR</button>
+            <button onclick="abrirQR()" class="bg-gray-100 hover:bg-gray-200 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🔳 QR</button>
             <button onclick="abrirVehiculos()" class="solo-admin bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🚚 Gestionar</button>
         </div>
     </div>
 
     <!-- Toggle del formulario en móvil -->
-    <div class="solo-editor lg:hidden sticky top-[60px] z-40 bg-gray-900/95 backdrop-blur px-4 py-2 border-b border-gray-800">
+    <div class="solo-editor lg:hidden sticky top-[60px] z-40 bg-white/95 backdrop-blur px-4 py-2 border-b border-gray-800">
         <button onclick="toggleForm()" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded font-bold text-sm transition cursor-pointer">➕ Añadir artículo</button>
     </div>
 
@@ -109,48 +109,48 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
             <!-- ================= FORMULARIO ================= -->
-            <div id="formPanel" class="solo-editor hidden lg:block lg:col-span-1 bg-gray-800 p-4 rounded-lg border border-gray-700 lg:sticky lg:top-24">
-                <h2 class="text-lg font-bold mb-4 border-b border-gray-700 pb-2 text-red-400 flex items-center gap-2">
+            <div id="formPanel" class="solo-editor hidden lg:block lg:col-span-1 bg-gray-50 p-4 rounded-lg border border-gray-200 lg:sticky lg:top-24">
+                <h2 class="text-lg font-bold mb-4 border-b border-gray-200 pb-2 text-red-600 flex items-center gap-2">
                     📝 <span id="formTitulo">Añadir artículo</span>
                 </h2>
                 <form id="materialForm" class="space-y-3" onsubmit="guardarMaterial(event)">
                     <input type="hidden" id="itemId">
 
-                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
-                        <label class="block text-xs font-semibold text-red-400 mb-2">📷 Fotografía del artículo</label>
+                    <div class="bg-gray-100 p-3 rounded border border-gray-200">
+                        <label class="block text-xs font-semibold text-red-600 mb-2">📷 Fotografía del artículo</label>
                         <div class="grid grid-cols-3 gap-2 mb-2">
-                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📁 Carpeta
+                            <label class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📁 Carpeta
                                 <input type="file" id="inputCarpeta" webkitdirectory directory multiple accept="image/*,.heic,.HEIC,.heif,.HEIF" class="hidden" onchange="cargarGaleria(event)"></label>
-                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">🖼️ Fotos
+                            <label class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">🖼️ Fotos
                                 <input type="file" id="inputFotos" multiple accept="image/*,.heic,.HEIC,.heif,.HEIF" class="hidden" onchange="cargarGaleria(event)"></label>
-                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📷 Cámara
+                            <label class="bg-gray-100 hover:bg-gray-200 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📷 Cámara
                                 <input type="file" id="inputCamara" accept="image/*" capture="environment" class="hidden" onchange="cargarGaleria(event)"></label>
                         </div>
                         <p id="galeriaInfo" class="text-[10px] text-gray-500 mb-2 leading-tight">Abre una carpeta o selecciona fotos y toca la miniatura correcta.</p>
                         <div id="galeria" class="hidden gallery-scroll grid grid-flow-col auto-cols-[80px] sm:auto-cols-[88px] gap-2 overflow-x-auto pb-2 mb-2"></div>
                         <div id="previewContainer" class="hidden">
-                            <div id="loadingHeic" class="hidden text-xs text-amber-400 font-semibold mb-1">🔄 Convirtiendo imagen iPhone (HEIC)…</div>
+                            <div id="loadingHeic" class="hidden text-xs text-amber-600 font-semibold mb-1">🔄 Convirtiendo imagen iPhone (HEIC)…</div>
                             <div class="flex items-center gap-2">
-                                <img id="imgPreview" src="" alt="Foto" class="max-h-28 w-auto rounded border border-gray-600 object-cover">
-                                <button type="button" onclick="quitarFoto()" class="text-xs text-red-400 hover:text-red-300 underline">Quitar foto</button>
+                                <img id="imgPreview" src="" alt="Foto" class="max-h-28 w-auto rounded border border-gray-300 object-cover">
+                                <button type="button" onclick="quitarFoto()" class="text-xs text-red-600 hover:text-red-300 underline">Quitar foto</button>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Vehículo / camión</label>
-                        <select id="formVehiculo" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer"></select>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Vehículo / camión</label>
+                        <select id="formVehiculo" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer"></select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del material / artículo</label>
-                        <input type="text" id="nombre" placeholder="Ej: Obturador cónico, Traje Gastight…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500" required>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del material / artículo</label>
+                        <input type="text" id="nombre" placeholder="Ej: Obturador cónico, Traje Gastight…" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500" required>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-900/50 p-2 rounded border border-gray-700">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-100 p-2 rounded border border-gray-200">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Sección</label>
-                            <select id="seccion" onchange="onSeccionChange()" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Sección</label>
+                            <select id="seccion" onchange="onSeccionChange()" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
                                 <option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option>
                                 <option value="S4">S4</option><option value="S5">S5</option><option value="S6">S6</option>
                                 <option value="S7">S7</option><option value="S8">S8</option><option value="S9">S9</option>
@@ -158,56 +158,56 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nivel</label>
-                            <select id="nivel" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nivel</label>
+                            <select id="nivel" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
                                 <option value="N1">N1 (bajo)</option><option value="N2">N2 (medio)</option><option value="N3">N3 (alto)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Lado</label>
-                            <select id="caja" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Lado</label>
+                            <select id="caja" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                                 <option value="A">Derecha</option><option value="B">Izquierda</option>
                             </select>
-                            <p id="cajaAviso" class="hidden text-[10px] text-amber-400 mt-0.5 leading-tight">No aplica en esta sección</p>
+                            <p id="cajaAviso" class="hidden text-[10px] text-amber-600 mt-0.5 leading-tight">No aplica en esta sección</p>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Fondo</label>
-                            <select id="fondo" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Fondo</label>
+                            <select id="fondo" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
                                 <option value="F1">Delantera</option><option value="F2">Media</option><option value="F3">Trasera</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría de intervención</label>
-                        <select id="categoria" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer" required>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Categoría de intervención</label>
+                        <select id="categoria" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer" required>
                             <option value="TRASVASE">TRASVASE</option><option value="TAPONAMIENTO">TAPONAMIENTO</option>
                             <option value="CONTENCION">CONTENCION</option><option value="DUCHA">DUCHA</option><option value="EPI">EPI</option>
                         </select>
                     </div>
 
-                    <label class="flex items-center gap-2 bg-gray-900/50 border border-gray-700 rounded px-3 py-2.5 cursor-pointer">
+                    <label class="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded px-3 py-2.5 cursor-pointer">
                         <input type="checkbox" id="disponible" checked class="w-5 h-5 accent-emerald-500 cursor-pointer">
                         <span class="text-sm font-semibold">Material disponible (operativo)</span>
-                        <span class="ml-auto text-[11px] text-gray-400">Desmarca = fuera de servicio</span>
+                        <span class="ml-auto text-[11px] text-gray-600">Desmarca = fuera de servicio</span>
                     </label>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Descripción / estado</label>
-                        <textarea id="descripcion" rows="2" placeholder="Características del objeto…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Descripción / estado</label>
+                        <textarea id="descripcion" rows="2" placeholder="Características del objeto…" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Especificaciones técnicas</label>
-                        <textarea id="especificaciones" rows="2" placeholder="Medidas, presiones, compatibilidades…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Especificaciones técnicas</label>
+                        <textarea id="especificaciones" rows="2" placeholder="Medidas, presiones, compatibilidades…" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Alertas de seguridad / caducidades</label>
-                        <input type="text" id="notas" placeholder="EPI obligatorio, revisiones…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Alertas de seguridad / caducidades</label>
+                        <input type="text" id="notas" placeholder="EPI obligatorio, revisiones…" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
                     </div>
 
                     <div class="flex gap-2 pt-1">
                         <button type="submit" id="btnGuardar" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded text-sm font-bold transition cursor-pointer">Guardar</button>
-                        <button type="button" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2.5 rounded text-sm transition cursor-pointer">Limpiar</button>
+                        <button type="button" onclick="resetForm()" class="bg-gray-100 hover:bg-gray-200 px-3 py-2.5 rounded text-sm transition cursor-pointer">Limpiar</button>
                     </div>
                 </form>
             </div>
@@ -215,11 +215,11 @@
             <!-- ================= LISTADO + INFORMES ================= -->
             <div class="lg:col-span-2 space-y-4" id="zonaLista">
 
-                <div class="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700">
-                    <h3 class="text-sm font-bold text-red-400 mb-2">📄 Informes para imprimir / Word</h3>
+                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-sm font-bold text-red-600 mb-2">📄 Informes para imprimir / Word</h3>
                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                        <input type="text" id="unidadInforme" placeholder="Unidad / Parque / Responsable (opcional, sale en el informe)" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
-                        <select id="alcanceInforme" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                        <input type="text" id="unidadInforme" placeholder="Unidad / Parque / Responsable (opcional, sale en el informe)" class="flex-1 bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                        <select id="alcanceInforme" class="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
                             <option value="TODOS">Todos los materiales</option>
                             <option value="DISPONIBLE">Solo disponibles</option>
                             <option value="FUERA">Solo fuera de servicio</option>
@@ -227,22 +227,22 @@
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button onclick="informe('ubicacion','word')" class="bg-blue-700 hover:bg-blue-600 text-white px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">📍 Inventario por ubicación (Word)</button>
-                        <button onclick="informe('ubicacion','print')" class="bg-gray-700 hover:bg-gray-600 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por ubicación</button>
+                        <button onclick="informe('ubicacion','print')" class="bg-gray-100 hover:bg-gray-200 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por ubicación</button>
                         <button onclick="informe('categoria','word')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🏷️ Por categoría (Word)</button>
-                        <button onclick="informe('categoria','print')" class="bg-gray-700 hover:bg-gray-600 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por categoría</button>
+                        <button onclick="informe('categoria','print')" class="bg-gray-100 hover:bg-gray-200 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por categoría</button>
                     </div>
                 </div>
 
-                <div class="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700 flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="searchBar" oninput="renderizarLista()" placeholder="🔍 Buscar por nombre, categoría o código (ej: S3·N2)…" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
-                    <select id="filterSeccion" onchange="renderizarLista()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200 flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="searchBar" oninput="renderizarLista()" placeholder="🔍 Buscar por nombre, categoría o código (ej: S3·N2)…" class="flex-1 bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <select id="filterSeccion" onchange="renderizarLista()" class="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
                         <option value="TODOS">Todas las secciones</option>
                         <option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option>
                         <option value="S4">S4</option><option value="S5">S5</option><option value="S6">S6</option>
                         <option value="S7">S7</option><option value="S8">S8</option><option value="S9">S9</option>
                         <option value="S10">S10</option><option value="TRAS">TRAS</option>
                     </select>
-                    <select id="filterEstado" onchange="renderizarLista()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                    <select id="filterEstado" onchange="renderizarLista()" class="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
                         <option value="TODOS">Todo el estado</option>
                         <option value="DISPONIBLE">Disponibles</option>
                         <option value="FUERA">Fuera de servicio</option>
@@ -263,7 +263,7 @@
         <div class="bg-white text-gray-900 rounded-lg p-5 max-w-lg w-full max-h-[88vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-lg font-bold text-red-700">🔳 Códigos QR del vehículo</h3>
-                <button onclick="cerrarQR()" class="text-gray-400 hover:text-gray-800 text-xl leading-none">✕</button>
+                <button onclick="cerrarQR()" class="text-gray-600 hover:text-gray-800 text-xl leading-none">✕</button>
             </div>
             <div id="qrContenido"></div>
             <div class="flex gap-2 mt-4">
@@ -274,34 +274,42 @@
     </div>
 
     <div id="modalVeh" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
-        <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 max-w-lg w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
-            <h3 class="text-lg font-bold text-red-400 mb-3">🚚 Vehículos de la flota</h3>
-            <div class="bg-gray-900/50 border border-gray-700 rounded p-3 mb-4">
-                <p class="text-xs font-semibold text-gray-400 mb-2" id="vehFormTitulo">Nuevo vehículo</p>
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-5 max-w-lg w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-red-600 mb-3">🚚 Vehículos de la flota</h3>
+            <div class="bg-gray-100 border border-gray-200 rounded p-3 mb-4">
+                <p class="text-xs font-semibold text-gray-600 mb-2" id="vehFormTitulo">Nuevo vehículo</p>
                 <input type="hidden" id="vehId">
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <input type="text" id="vehNombre" placeholder="Nombre (ej: BUL-12)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
-                    <input type="text" id="vehMatricula" placeholder="Matrícula (opcional)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
-                    <input type="text" id="vehParque" placeholder="Parque (opcional)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <input type="text" id="vehNombre" placeholder="Nombre (ej: BUL-12)" class="bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <input type="text" id="vehMatricula" placeholder="Matrícula (opcional)" class="bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <input type="text" id="vehParque" placeholder="Parque (opcional)" class="bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
                 </div>
                 <div class="flex gap-2 mt-2">
                     <button onclick="guardarVehiculo()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar vehículo</button>
-                    <button onclick="resetVehForm()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition">Limpiar</button>
+                    <button onclick="resetVehForm()" class="bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-sm transition">Limpiar</button>
                 </div>
             </div>
             <div id="vehLista" class="space-y-2"></div>
-            <button onclick="cerrarVehiculos()" class="w-full mt-4 bg-gray-700 hover:bg-gray-600 py-2 rounded text-sm transition">Cerrar</button>
+            <div class="bg-amber-50 border border-amber-300 rounded p-3 mt-4">
+                <p class="text-xs font-semibold text-amber-800 mb-1">🔀 Migrar material sin vehículo</p>
+                <p class="text-[11px] text-gray-700 mb-2">Asigna de golpe todo el material que aún no tiene vehículo (el que ya tenías antes de crear la flota) al camión que elijas.</p>
+                <div class="flex gap-2">
+                    <select id="migVehiculo" class="flex-1 bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm text-gray-900 focus:outline-none focus:border-red-500"></select>
+                    <button onclick="asignarHuerfanos()" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-2 rounded text-sm font-bold transition">Asignar</button>
+                </div>
+            </div>
+            <button onclick="cerrarVehiculos()" class="w-full mt-4 bg-gray-100 hover:bg-gray-200 py-2 rounded text-sm transition">Cerrar</button>
         </div>
     </div>
 
     <div id="modalConfig" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
-        <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 max-w-md w-full" onclick="event.stopPropagation()">
-            <h3 class="text-lg font-bold text-red-400 mb-2">⚙️ Conexión al servidor</h3>
-            <p class="text-xs text-gray-400 mb-3">Pega la URL de tu aplicación web de Google Apps Script (termina en <code>/exec</code>).</p>
-            <input type="text" id="inputUrl" placeholder="https://script.google.com/macros/s/…/exec" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 mb-3">
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-5 max-w-md w-full" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-red-600 mb-2">⚙️ Conexión al servidor</h3>
+            <p class="text-xs text-gray-600 mb-3">Pega la URL de tu aplicación web de Google Apps Script (termina en <code>/exec</code>).</p>
+            <input type="text" id="inputUrl" placeholder="https://script.google.com/macros/s/…/exec" class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 mb-3">
             <div class="flex gap-2">
                 <button onclick="guardarConfig()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar</button>
-                <button onclick="cerrarConfig()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition">Cerrar</button>
+                <button onclick="cerrarConfig()" class="bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded text-sm transition">Cerrar</button>
             </div>
         </div>
     </div>
@@ -425,7 +433,7 @@
         const badge = document.getElementById("rolBadge");
         const etiquetas = { admin: "administrador", edicion: "edición", consulta: "consulta" };
         badge.textContent = etiquetas[ACCESO.rol] || ACCESO.rol;
-        badge.className = "text-[10px] sm:text-xs px-2 py-0.5 rounded " + (esAdmin() ? "bg-red-900" : esEditor() ? "bg-emerald-800" : "bg-gray-700");
+        badge.className = "text-[10px] sm:text-xs px-2 py-0.5 rounded " + (esAdmin() ? "bg-red-900" : esEditor() ? "bg-emerald-800" : "bg-black/40");
         badge.classList.remove("hidden");
         renderizarLista();
     }
@@ -516,7 +524,7 @@
         if (!VEHICULOS.length) {
             document.getElementById("contadorTotal").textContent = "";
             document.getElementById("listaMateriales").innerHTML =
-                `<div class="bg-gray-800 border border-gray-700 rounded-lg p-8 text-center text-gray-400">` +
+                `<div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-600">` +
                 (esAdmin() ? 'Aún no hay vehículos. Pulsa <b>🚚 Gestionar</b> (arriba) para crear el primero.'
                            : 'El administrador aún no ha creado vehículos.') + `</div>`;
             setSync(esAdmin() ? "crea un vehículo" : "sin vehículos", "bg-amber-700 text-black");
@@ -558,15 +566,31 @@
     }
     function renderVehLista() {
         const cont = document.getElementById("vehLista");
+        const mig = document.getElementById("migVehiculo");
+        if (mig) mig.innerHTML = VEHICULOS.length
+            ? VEHICULOS.map(v => `<option value="${v.id}">${escapeHtml(etiquetaVehiculo(v))}</option>`).join("")
+            : `<option value="">— crea un vehículo primero —</option>`;
         if (!VEHICULOS.length) { cont.innerHTML = `<p class="text-xs text-gray-500 text-center py-3">No hay vehículos todavía.</p>`; return; }
-        cont.innerHTML = VEHICULOS.map(v => `<div class="flex items-center gap-2 bg-gray-900/50 border border-gray-700 rounded px-3 py-2">
+        cont.innerHTML = VEHICULOS.map(v => `<div class="flex items-center gap-2 bg-gray-100 border border-gray-200 rounded px-3 py-2">
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold truncate">🚚 ${escapeHtml(v.nombre || v.id)}</p>
-                <p class="text-[11px] text-gray-400 truncate">${escapeHtml([v.matricula, v.parque].filter(Boolean).join(" · "))}</p>
+                <p class="text-[11px] text-gray-600 truncate">${escapeHtml([v.matricula, v.parque].filter(Boolean).join(" · "))}</p>
             </div>
-            <button onclick="editarVehiculo('${v.id}')" class="text-xs text-blue-400 hover:text-blue-300 px-1">✏️</button>
-            <button onclick="borrarVehiculo('${v.id}')" class="text-xs text-red-400 hover:text-red-300 px-1">🗑️</button>
+            <button onclick="editarVehiculo('${v.id}')" class="text-xs text-blue-600 hover:text-blue-300 px-1">✏️</button>
+            <button onclick="borrarVehiculo('${v.id}')" class="text-xs text-red-600 hover:text-red-300 px-1">🗑️</button>
         </div>`).join("");
+    }
+    async function asignarHuerfanos() {
+        if (!esAdmin()) return;
+        const vehiculoId = document.getElementById("migVehiculo").value;
+        if (!vehiculoId) { alert("Crea o elige un vehículo destino."); return; }
+        if (!confirm("Se asignará TODO el material que aún no tiene vehículo al camión seleccionado. ¿Continuar?")) return;
+        try {
+            const r = await api({ action: "asignarSinVehiculo", vehiculoId });
+            alert("Material migrado: " + (r.asignados || 0) + " artículo(s).");
+            await cargarVehiculos();
+            renderVehLista();
+        } catch (e) { alert("No se pudo migrar: " + e.message); }
     }
     function editarVehiculo(id) {
         const v = vehiculoPorId(id); if (!v) return;
@@ -758,10 +782,10 @@
         lista.forEach((file) => {
             const tile = document.createElement("button");
             tile.type = "button";
-            tile.className = "relative h-20 w-full rounded border border-gray-600 overflow-hidden bg-gray-700 flex items-center justify-center cursor-pointer hover:border-red-400 transition";
+            tile.className = "relative h-20 w-full rounded border border-gray-300 overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer hover:border-red-400 transition";
             tile.title = file.name || "foto";
             const img = document.createElement("img"); img.className = "h-full w-full object-cover";
-            const spin = document.createElement("span"); spin.className = "text-[10px] text-amber-400 px-1 text-center";
+            const spin = document.createElement("span"); spin.className = "text-[10px] text-amber-600 px-1 text-center";
             spin.textContent = esHeic(file) ? "HEIC…" : "…"; tile.appendChild(spin);
             if (esHeic(file)) {
                 heic2any({ blob: file, toType: "image/jpeg", quality: 0.5 })
@@ -947,27 +971,27 @@
         const color = COLOR_CAT[m.categoria] || "bg-gray-600";
         const src = m.fotoThumb || ((m.fotoId || m.fotoUrl) ? fotoSrc(m, 200) : "");
         const foto = src
-            ? `<img src="${src}" referrerpolicy="no-referrer" onclick="abrirLightbox('${m.id}')" class="h-16 w-16 rounded object-cover border border-gray-600 cursor-zoom-in flex-shrink-0">`
-            : `<div class="h-16 w-16 rounded bg-gray-700 border border-gray-600 flex items-center justify-center text-gray-500 text-xl flex-shrink-0">📦</div>`;
+            ? `<img src="${src}" referrerpolicy="no-referrer" onclick="abrirLightbox('${m.id}')" class="h-16 w-16 rounded object-cover border border-gray-300 cursor-zoom-in flex-shrink-0">`
+            : `<div class="h-16 w-16 rounded bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-500 text-xl flex-shrink-0">📦</div>`;
         const estadoBadge = fuera
             ? `<span class="bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded">⛔ FUERA DE SERVICIO</span>`
             : `<span class="bg-emerald-700 text-white text-[10px] px-1.5 py-0.5 rounded">✓ Disponible</span>`;
-        const alerta = m.notas ? `<p class="text-[11px] text-amber-400 mt-1">⚠️ ${escapeHtml(m.notas)}</p>` : "";
-        const espec = m.especificaciones ? `<p class="text-[11px] text-gray-400 mt-1"><span class="text-gray-500">Téc.:</span> ${escapeHtml(m.especificaciones)}</p>` : "";
-        const desc = m.descripcion ? `<p class="text-xs text-gray-300 mt-0.5">${escapeHtml(m.descripcion)}</p>` : "";
+        const alerta = m.notas ? `<p class="text-[11px] text-amber-600 mt-1">⚠️ ${escapeHtml(m.notas)}</p>` : "";
+        const espec = m.especificaciones ? `<p class="text-[11px] text-gray-600 mt-1"><span class="text-gray-500">Téc.:</span> ${escapeHtml(m.especificaciones)}</p>` : "";
+        const desc = m.descripcion ? `<p class="text-xs text-gray-700 mt-0.5">${escapeHtml(m.descripcion)}</p>` : "";
         const acciones = editor ? `<div class="flex flex-wrap gap-3 mt-2">
-                <button onclick="toggleEstado('${m.id}')" class="text-xs ${fuera ? 'text-emerald-400 hover:text-emerald-300' : 'text-amber-400 hover:text-amber-300'}">${fuera ? '↩️ Reponer' : '⛔ Fuera de servicio'}</button>
-                <button onclick="editarMaterial('${m.id}')" class="text-xs text-blue-400 hover:text-blue-300">✏️ Editar</button>
-                <button onclick="borrarMaterial('${m.id}')" class="text-xs text-red-400 hover:text-red-300">🗑️ Borrar</button>
+                <button onclick="toggleEstado('${m.id}')" class="text-xs ${fuera ? 'text-emerald-600 hover:text-emerald-300' : 'text-amber-600 hover:text-amber-300'}">${fuera ? '↩️ Reponer' : '⛔ Fuera de servicio'}</button>
+                <button onclick="editarMaterial('${m.id}')" class="text-xs text-blue-600 hover:text-blue-300">✏️ Editar</button>
+                <button onclick="borrarMaterial('${m.id}')" class="text-xs text-red-600 hover:text-red-300">🗑️ Borrar</button>
             </div>` : "";
-        return `<article class="bg-gray-800 border ${fuera ? 'border-red-800' : 'border-gray-700'} rounded-lg p-3 flex gap-3 ${fuera ? 'opacity-80' : ''}">
+        return `<article class="bg-gray-50 border ${fuera ? 'border-red-300' : 'border-gray-200'} rounded-lg p-3 flex gap-3 ${fuera ? 'opacity-80' : ''}">
             ${foto}
             <div class="flex-1 min-w-0">
                 <div class="flex items-start justify-between gap-2">
                     <h4 class="font-bold text-sm leading-tight ${fuera ? 'line-through decoration-red-500/60' : ''}">${escapeHtml(m.nombre)}</h4>
                     <span class="${color} text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">${m.categoria}</span>
                 </div>
-                <p class="text-[11px] font-mono text-red-300 mt-0.5">📍 ${codigoUbicacion(m)}</p>
+                <p class="text-[11px] font-mono text-red-700 mt-0.5">📍 ${codigoUbicacion(m)}</p>
                 <div class="mt-1">${estadoBadge}</div>
                 ${desc}${espec}${alerta}${acciones}
             </div>
@@ -975,7 +999,7 @@
     }
 
     function encabezado(etiqueta, n) {
-        return `<h3 class="text-sm font-bold text-red-400 mb-2 flex items-center gap-2"><span class="bg-red-700 text-white px-2 py-0.5 rounded">${escapeHtml(etiqueta)}</span><span class="text-gray-500 font-normal">${n} ítem(s)</span></h3>`;
+        return `<h3 class="text-sm font-bold text-red-600 mb-2 flex items-center gap-2"><span class="bg-red-700 text-white px-2 py-0.5 rounded">${escapeHtml(etiqueta)}</span><span class="text-gray-500 font-normal">${n} ítem(s)</span></h3>`;
     }
 
     function renderizarLista() {
@@ -985,7 +1009,7 @@
         const items = filtrar();
         contador.textContent = `${items.length} artículo(s)` + (vehiculoActual && vehiculoActual !== "ALL" ? " · " + nombreVehiculoPorId(vehiculoActual) : (vehiculoActual === "ALL" ? " · flota completa" : ""));
         if (!items.length) {
-            cont.innerHTML = `<div class="bg-gray-800 border border-gray-700 rounded-lg p-8 text-center text-gray-500">Sin resultados. Ajusta la búsqueda${editor ? " o añade un artículo" : ""}.</div>`;
+            cont.innerHTML = `<div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">Sin resultados. Ajusta la búsqueda${editor ? " o añade un artículo" : ""}.</div>`;
             return;
         }
         let html = "";

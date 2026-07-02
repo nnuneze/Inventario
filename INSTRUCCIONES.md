@@ -114,7 +114,24 @@ Se abrirá a pantalla completa, con su icono, y podrás **consultar el inventari
 
 ---
 
-## Notas y solución de problemas
+## Migrar datos que ya tenías
+
+**Caso 1 — tus datos ya están en la hoja de Google** (venías usando la versión con servidor). Es lo más habitual:
+1. Sustituye el `Codigo.gs` por el nuevo y **reimplementa una versión nueva** (Implementar ▸ Gestionar implementaciones ▸ editar ▸ Versión: Nueva). La hoja añade solas las columnas `vehiculoId` y `fotoThumb`; **no se borra nada**.
+2. Entra en la app como **administrador**, pulsa **🚚 Gestionar** y crea tu(s) vehículo(s).
+3. En ese mismo panel, abajo, usa **🔀 Migrar material sin vehículo**: elige el camión y pulsa *Asignar*. Todo el material antiguo pasa a ese vehículo de golpe. (Si luego hay piezas que van en otro camión, edítalas y cámbiales el vehículo.)
+4. Las **fotos antiguas** seguirán viéndose en la app, pero para que salgan en los *informes* hay que reabrir cada artículo y volver a guardarle la foto una vez (así se crea la miniatura). Solo es necesario si quieres las fotos impresas.
+
+**Caso 2 — tus datos están en el navegador** (usaste la primera versión local, sin servidor):
+1. Abre aquella versión antigua y pulsa **Exportar Backup**: descarga un archivo `.json`.
+2. En la app nueva, entra como administrador, crea el vehículo y **selecciónalo** en el desplegable 🚚.
+3. Pulsa **📤 Importar** y elige ese `.json`. El material se sube al servidor y se asigna al vehículo seleccionado.
+4. Revisa ubicaciones y, si hace falta, vuelve a guardar las fotos para que aparezcan en informes.
+
+> Consejo: antes de migrar, pulsa **📥 Backup** para tener una copia de seguridad por si algo no sale como esperas.
+
+---
+
 
 - **Datos compartidos:** todos los dispositivos que abran la misma URL ven el mismo inventario en tiempo real (es la misma hoja). Pulsa **🔄 Recargar** para traer los últimos cambios.
 - **Sin conexión:** la app muestra el último inventario cacheado, pero para guardar necesita conexión.
