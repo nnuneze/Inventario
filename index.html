@@ -160,7 +160,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Nivel</label>
                             <select id="nivel" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
-                                <option value="N1">N1 (bajo)</option><option value="N2">N2 (medio)</option><option value="N3">N3 (alto)</option>
+                                <option value="SUELO">SUELO</option><option value="N1">N1 (bajo)</option><option value="N2">N2 (medio)</option><option value="N3">N3 (alto)</option>
                             </select>
                         </div>
                         <div>
@@ -183,6 +183,7 @@
                         <select id="categoria" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer" required>
                             <option value="TRASVASE">TRASVASE</option><option value="TAPONAMIENTO">TAPONAMIENTO</option>
                             <option value="CONTENCION">CONTENCION</option><option value="DUCHA">DUCHA</option><option value="EPI">EPI</option>
+                            <option value="MAT AUXILIAR">MAT AUXILIAR</option>
                         </select>
                     </div>
 
@@ -966,7 +967,7 @@
         if (m.fotoThumb) return m.fotoThumb;
         return fotoSrc(m, 600);
     }
-    const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600" };
+    const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600", "MAT AUXILIAR": "bg-slate-600" };
 
     function filtrar() {
         const q = document.getElementById("searchBar").value.toLowerCase();
@@ -1130,7 +1131,7 @@
         return html || "<p>Sin artículos.</p>";
     }
     function tablaPorCategoria(items, conVeh) {
-        const cats = ["TRASVASE","TAPONAMIENTO","CONTENCION","DUCHA","EPI"];
+        const cats = ["TRASVASE","TAPONAMIENTO","CONTENCION","DUCHA","EPI","MAT AUXILIAR"];
         const grupos = {}; items.forEach(m => { (grupos[m.categoria] = grupos[m.categoria] || []).push(m); });
         const otras = Object.keys(grupos).filter(c => !cats.includes(c));
         const thVeh = conVeh ? "<th>Vehículo</th>" : "";
