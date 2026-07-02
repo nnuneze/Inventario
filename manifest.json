@@ -1,0 +1,19 @@
+{
+  "name": "Inventario Hazmat · Contenedor Operativo",
+  "short_name": "Hazmat",
+  "description": "Gestor de materiales del contenedor operativo Hazmat: inventario por ubicación, disponibilidad e informes.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#111827",
+  "theme_color": "#b91c1c",
+  "lang": "es",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

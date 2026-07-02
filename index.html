@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#b91c1c">
+    <title>Inventario Hazmat · Contenedor Operativo</title>
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="shortcut icon" href="./favicon.ico">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hazmat">
+    <meta name="mobile-web-app-capable" content="yes">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+    <style>
+        html { -webkit-text-size-adjust: 100%; }
+        .gallery-scroll { scrollbar-width: thin; scrollbar-color: #ef4444 #1f2937; }
+        .gallery-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+        .gallery-scroll::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 4px; }
+        .gallery-scroll::-webkit-scrollbar-track { background: #1f2937; }
+        select, input, textarea, button { font-size: 16px; }
+        @media (min-width: 640px) { select, input, textarea, button { font-size: 14px; } }
+        .tile-selected { outline: 3px solid #ef4444; outline-offset: 1px; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+        /* En modo consulta se ocultan los controles de edición */
+        body.modo-consulta .solo-editor { display: none !important; }
+        body:not(.rol-admin) .solo-admin { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans antialiased">
+
+    <!-- ============ CONFIGURACIÓN DEL SERVIDOR ============ -->
+    <script>
+        /* ▼▼▼  PEGA AQUÍ LA URL DE TU APPS SCRIPT (termina en /exec)  ▼▼▼ */
+        const APPS_SCRIPT_URL = "";
+        /* ▲▲▲  Déjalo vacío para configurarlo desde el botón ⚙️ de la app  ▲▲▲ */
+    </script>
+
+    <!-- ================= PANTALLA DE ACCESO ================= -->
+    <div id="loginScreen" class="hidden fixed inset-0 z-[200] bg-gray-900 items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-2xl">
+            <div class="text-center mb-5">
+                <div class="text-4xl mb-1">🚒</div>
+                <h1 class="text-xl font-bold tracking-wide">INVENTARIO HAZMAT</h1>
+                <p class="text-xs text-gray-400 mt-1">Contenedor operativo · acceso restringido</p>
+            </div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Clave de acceso</label>
+            <input type="password" id="inputClave" autocomplete="current-password" placeholder="••••••••"
+                onkeydown="if(event.key==='Enter') hacerLogin()"
+                class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 mb-2">
+            <label class="flex items-center gap-2 text-xs text-gray-400 mb-3 cursor-pointer">
+                <input type="checkbox" id="recordarClave" checked class="accent-red-500"> Recordar en este dispositivo
+            </label>
+            <p id="loginError" class="hidden text-xs text-red-400 mb-3"></p>
+            <button onclick="hacerLogin()" id="btnLogin" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded font-bold text-sm transition cursor-pointer">Entrar</button>
+            <button onclick="abrirConfig()" class="w-full text-xs text-gray-500 hover:text-gray-300 mt-3 underline">⚙️ Configurar servidor</button>
+        </div>
+    </div>
+
+    <!-- ================= CABECERA ================= -->
+    <header class="bg-red-700 shadow-lg p-3 sm:p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex flex-wrap justify-between items-center gap-3">
+            <h1 class="text-base sm:text-xl font-bold tracking-wider flex items-center gap-2">
+                🚒 INVENTARIO HAZMAT
+                <span id="syncBadge" class="text-[10px] sm:text-xs bg-black/40 px-2 py-0.5 rounded">conectando…</span>
+                <span id="rolBadge" class="hidden text-[10px] sm:text-xs bg-black/40 px-2 py-0.5 rounded"></span>
+            </h1>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="cargarVehiculos()" class="bg-gray-900/60 hover:bg-gray-900 px-3 py-2 rounded text-xs font-semibold cursor-pointer transition">🔄 Recargar</button>
+                <button onclick="exportarDatos()" class="bg-gray-900/60 hover:bg-gray-900 px-3 py-2 rounded text-xs font-semibold cursor-pointer transition">📥 Backup</button>
+                <label class="solo-editor bg-gray-900/60 hover:bg-gray-900 px-3 py-2 rounded text-xs font-semibold cursor-pointer transition">📤 Importar
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importarDatos(event)"></label>
+                <button onclick="abrirConfig()" class="bg-gray-900/60 hover:bg-gray-900 px-3 py-2 rounded text-xs font-semibold cursor-pointer transition">⚙️</button>
+                <button id="btnSalir" onclick="cerrarSesion()" class="hidden bg-black/50 hover:bg-black px-3 py-2 rounded text-xs font-semibold cursor-pointer transition">🔓 Salir</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Aviso de configuración -->
+    <div id="bannerConfig" class="hidden bg-amber-600 text-black text-sm px-4 py-2 text-center font-semibold">
+        Configura la URL del servidor (Google Apps Script) para empezar.
+        <button onclick="abrirConfig()" class="underline ml-1">Configurar ahora</button>
+    </div>
+
+    <!-- Selector de vehículo (flota) -->
+    <div id="barraVehiculo" class="hidden bg-gray-800/90 border-b border-gray-700 px-4 py-2">
+        <div class="container mx-auto max-w-6xl flex flex-wrap items-center gap-2">
+            <span class="text-sm font-semibold text-gray-300">🚚 Vehículo:</span>
+            <select id="selVehiculo" onchange="cambiarVehiculo()" class="flex-1 min-w-[180px] bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 cursor-pointer">
+                <option value="">— Sin vehículos —</option>
+            </select>
+            <button onclick="abrirQR()" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🔳 QR</button>
+            <button onclick="abrirVehiculos()" class="solo-admin bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🚚 Gestionar</button>
+        </div>
+    </div>
+
+    <!-- Toggle del formulario en móvil -->
+    <div class="solo-editor lg:hidden sticky top-[60px] z-40 bg-gray-900/95 backdrop-blur px-4 py-2 border-b border-gray-800">
+        <button onclick="toggleForm()" class="w-full bg-red-600 hover:bg-red-500 text-white py-2.5 rounded font-bold text-sm transition cursor-pointer">➕ Añadir artículo</button>
+    </div>
+
+    <main class="container mx-auto p-4 max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+            <!-- ================= FORMULARIO ================= -->
+            <div id="formPanel" class="solo-editor hidden lg:block lg:col-span-1 bg-gray-800 p-4 rounded-lg border border-gray-700 lg:sticky lg:top-24">
+                <h2 class="text-lg font-bold mb-4 border-b border-gray-700 pb-2 text-red-400 flex items-center gap-2">
+                    📝 <span id="formTitulo">Añadir artículo</span>
+                </h2>
+                <form id="materialForm" class="space-y-3" onsubmit="guardarMaterial(event)">
+                    <input type="hidden" id="itemId">
+
+                    <div class="bg-gray-900/50 p-3 rounded border border-gray-700">
+                        <label class="block text-xs font-semibold text-red-400 mb-2">📷 Fotografía del artículo</label>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📁 Carpeta
+                                <input type="file" id="inputCarpeta" webkitdirectory directory multiple accept="image/*,.heic,.HEIC,.heif,.HEIF" class="hidden" onchange="cargarGaleria(event)"></label>
+                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">🖼️ Fotos
+                                <input type="file" id="inputFotos" multiple accept="image/*,.heic,.HEIC,.heif,.HEIF" class="hidden" onchange="cargarGaleria(event)"></label>
+                            <label class="bg-gray-700 hover:bg-gray-600 rounded px-2 py-2 text-center text-[11px] font-semibold cursor-pointer transition">📷 Cámara
+                                <input type="file" id="inputCamara" accept="image/*" capture="environment" class="hidden" onchange="cargarGaleria(event)"></label>
+                        </div>
+                        <p id="galeriaInfo" class="text-[10px] text-gray-500 mb-2 leading-tight">Abre una carpeta o selecciona fotos y toca la miniatura correcta.</p>
+                        <div id="galeria" class="hidden gallery-scroll grid grid-flow-col auto-cols-[80px] sm:auto-cols-[88px] gap-2 overflow-x-auto pb-2 mb-2"></div>
+                        <div id="previewContainer" class="hidden">
+                            <div id="loadingHeic" class="hidden text-xs text-amber-400 font-semibold mb-1">🔄 Convirtiendo imagen iPhone (HEIC)…</div>
+                            <div class="flex items-center gap-2">
+                                <img id="imgPreview" src="" alt="Foto" class="max-h-28 w-auto rounded border border-gray-600 object-cover">
+                                <button type="button" onclick="quitarFoto()" class="text-xs text-red-400 hover:text-red-300 underline">Quitar foto</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Vehículo / camión</label>
+                        <select id="formVehiculo" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer"></select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del material / artículo</label>
+                        <input type="text" id="nombre" placeholder="Ej: Obturador cónico, Traje Gastight…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-900/50 p-2 rounded border border-gray-700">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Sección</label>
+                            <select id="seccion" onchange="onSeccionChange()" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                                <option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option>
+                                <option value="S4">S4</option><option value="S5">S5</option><option value="S6">S6</option>
+                                <option value="S7">S7</option><option value="S8">S8</option><option value="S9">S9</option>
+                                <option value="S10">S10</option><option value="TRAS">TRAS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nivel</label>
+                            <select id="nivel" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                                <option value="N1">N1 (bajo)</option><option value="N2">N2 (medio)</option><option value="N3">N3 (alto)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Lado</label>
+                            <select id="caja" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                <option value="A">Derecha</option><option value="B">Izquierda</option>
+                            </select>
+                            <p id="cajaAviso" class="hidden text-[10px] text-amber-400 mt-0.5 leading-tight">No aplica en esta sección</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Fondo</label>
+                            <select id="fondo" class="w-full bg-gray-700 border border-gray-600 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
+                                <option value="F1">Delantera</option><option value="F2">Media</option><option value="F3">Trasera</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría de intervención</label>
+                        <select id="categoria" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer" required>
+                            <option value="TRASVASE">TRASVASE</option><option value="TAPONAMIENTO">TAPONAMIENTO</option>
+                            <option value="CONTENCION">CONTENCION</option><option value="DUCHA">DUCHA</option><option value="EPI">EPI</option>
+                        </select>
+                    </div>
+
+                    <label class="flex items-center gap-2 bg-gray-900/50 border border-gray-700 rounded px-3 py-2.5 cursor-pointer">
+                        <input type="checkbox" id="disponible" checked class="w-5 h-5 accent-emerald-500 cursor-pointer">
+                        <span class="text-sm font-semibold">Material disponible (operativo)</span>
+                        <span class="ml-auto text-[11px] text-gray-400">Desmarca = fuera de servicio</span>
+                    </label>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Descripción / estado</label>
+                        <textarea id="descripcion" rows="2" placeholder="Características del objeto…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Especificaciones técnicas</label>
+                        <textarea id="especificaciones" rows="2" placeholder="Medidas, presiones, compatibilidades…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Alertas de seguridad / caducidades</label>
+                        <input type="text" id="notas" placeholder="EPI obligatorio, revisiones…" class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button type="submit" id="btnGuardar" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded text-sm font-bold transition cursor-pointer">Guardar</button>
+                        <button type="button" onclick="resetForm()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2.5 rounded text-sm transition cursor-pointer">Limpiar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ================= LISTADO + INFORMES ================= -->
+            <div class="lg:col-span-2 space-y-4" id="zonaLista">
+
+                <div class="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700">
+                    <h3 class="text-sm font-bold text-red-400 mb-2">📄 Informes para imprimir / Word</h3>
+                    <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                        <input type="text" id="unidadInforme" placeholder="Unidad / Parque / Responsable (opcional, sale en el informe)" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                        <select id="alcanceInforme" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                            <option value="TODOS">Todos los materiales</option>
+                            <option value="DISPONIBLE">Solo disponibles</option>
+                            <option value="FUERA">Solo fuera de servicio</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button onclick="informe('ubicacion','word')" class="bg-blue-700 hover:bg-blue-600 text-white px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">📍 Inventario por ubicación (Word)</button>
+                        <button onclick="informe('ubicacion','print')" class="bg-gray-700 hover:bg-gray-600 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por ubicación</button>
+                        <button onclick="informe('categoria','word')" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🏷️ Por categoría (Word)</button>
+                        <button onclick="informe('categoria','print')" class="bg-gray-700 hover:bg-gray-600 px-2 py-2 rounded text-xs font-semibold transition cursor-pointer">🖨️ Imprimir por categoría</button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 p-3 sm:p-4 rounded-lg border border-gray-700 flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="searchBar" oninput="renderizarLista()" placeholder="🔍 Buscar por nombre, categoría o código (ej: S3·N2)…" class="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <select id="filterSeccion" onchange="renderizarLista()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                        <option value="TODOS">Todas las secciones</option>
+                        <option value="S1">S1</option><option value="S2">S2</option><option value="S3">S3</option>
+                        <option value="S4">S4</option><option value="S5">S5</option><option value="S6">S6</option>
+                        <option value="S7">S7</option><option value="S8">S8</option><option value="S9">S9</option>
+                        <option value="S10">S10</option><option value="TRAS">TRAS</option>
+                    </select>
+                    <select id="filterEstado" onchange="renderizarLista()" class="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                        <option value="TODOS">Todo el estado</option>
+                        <option value="DISPONIBLE">Disponibles</option>
+                        <option value="FUERA">Fuera de servicio</option>
+                    </select>
+                </div>
+
+                <div id="contadorTotal" class="text-xs text-gray-500 px-1"></div>
+                <div id="listaMateriales" class="space-y-6"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="lightbox" class="hidden fixed inset-0 z-[100] bg-black/90 items-center justify-center p-4" onclick="cerrarLightbox()">
+        <img id="lightboxImg" src="" alt="" class="max-h-full max-w-full rounded">
+    </div>
+
+    <div id="modalQR" class="hidden fixed inset-0 z-[215] bg-black/70 items-center justify-center p-4">
+        <div class="bg-white text-gray-900 rounded-lg p-5 max-w-lg w-full max-h-[88vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-bold text-red-700">🔳 Códigos QR del vehículo</h3>
+                <button onclick="cerrarQR()" class="text-gray-400 hover:text-gray-800 text-xl leading-none">✕</button>
+            </div>
+            <div id="qrContenido"></div>
+            <div class="flex gap-2 mt-4">
+                <button onclick="imprimirQR()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">🖨️ Imprimir hoja</button>
+                <button onclick="cerrarQR()" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVeh" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 max-w-lg w-full max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-red-400 mb-3">🚚 Vehículos de la flota</h3>
+            <div class="bg-gray-900/50 border border-gray-700 rounded p-3 mb-4">
+                <p class="text-xs font-semibold text-gray-400 mb-2" id="vehFormTitulo">Nuevo vehículo</p>
+                <input type="hidden" id="vehId">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input type="text" id="vehNombre" placeholder="Nombre (ej: BUL-12)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <input type="text" id="vehMatricula" placeholder="Matrícula (opcional)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                    <input type="text" id="vehParque" placeholder="Parque (opcional)" class="bg-gray-700 border border-gray-600 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="guardarVehiculo()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar vehículo</button>
+                    <button onclick="resetVehForm()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition">Limpiar</button>
+                </div>
+            </div>
+            <div id="vehLista" class="space-y-2"></div>
+            <button onclick="cerrarVehiculos()" class="w-full mt-4 bg-gray-700 hover:bg-gray-600 py-2 rounded text-sm transition">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="modalConfig" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-600 rounded-lg p-5 max-w-md w-full" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-red-400 mb-2">⚙️ Conexión al servidor</h3>
+            <p class="text-xs text-gray-400 mb-3">Pega la URL de tu aplicación web de Google Apps Script (termina en <code>/exec</code>).</p>
+            <input type="text" id="inputUrl" placeholder="https://script.google.com/macros/s/…/exec" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 mb-3">
+            <div class="flex gap-2">
+                <button onclick="guardarConfig()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar</button>
+                <button onclick="cerrarConfig()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* ================================================================
+       ESTADO GLOBAL
+    ================================================================ */
+    const SECCIONES_SIN_CAJA = ["S1", "S2"];
+    const SECCIONES = ["S1","S2","S3","S4","S5","S6","S7","S8","S9","S10","TRAS"];
+    const CAJA_LABEL  = { A: "Derecha", B: "Izquierda" };
+    const FONDO_LABEL = { F1: "Delantera", F2: "Media", F3: "Trasera" };
+    let MATERIALES = [];
+    let VEHICULOS = [];
+    let vehiculoActual = "";
+    let pendingDeep = null;       // enlace profundo pendiente (QR): { v, s }
+    let qrIncluirSecc = false;
+    let imagenFormularioBase64 = "";
+    let imagenThumbBase64 = "";
+    let galeriaURLs = [];
+    let ACCESO = { clave: "", rol: "" };
+
+    function esEditor() { return ACCESO.rol === "admin" || ACCESO.rol === "edicion"; }
+    function esAdmin()  { return ACCESO.rol === "admin"; }
+
+    /* ---------- almacenamiento ---------- */
+    function getEndpoint() {
+        let url = ""; try { url = localStorage.getItem("hazmat_endpoint") || ""; } catch (e) {}
+        return url || APPS_SCRIPT_URL || "";
+    }
+    function setEndpoint(url) { try { localStorage.setItem("hazmat_endpoint", url); } catch (e) {} }
+    function getClave() { try { return localStorage.getItem("hazmat_clave") || ""; } catch (e) { return ""; } }
+    function setClave(c) { try { c ? localStorage.setItem("hazmat_clave", c) : localStorage.removeItem("hazmat_clave"); } catch (e) {} }
+    function getVehSel() { try { return localStorage.getItem("hazmat_veh_sel") || ""; } catch (e) { return ""; } }
+    function setVehSel(v) { try { localStorage.setItem("hazmat_veh_sel", v); } catch (e) {} }
+    function cachearVeh(v) { try { localStorage.setItem("hazmat_veh_cache", JSON.stringify(v)); } catch (e) {} }
+    function leerCacheVeh() { try { return JSON.parse(localStorage.getItem("hazmat_veh_cache") || "[]"); } catch (e) { return []; } }
+
+    function setSync(txt, color) {
+        const b = document.getElementById("syncBadge");
+        b.textContent = txt;
+        b.className = "text-[10px] sm:text-xs px-2 py-0.5 rounded " + (color || "bg-black/40");
+    }
+
+    /* ================================================================
+       API
+    ================================================================ */
+    async function post(payload) {
+        const url = getEndpoint();
+        if (!url) throw new Error("Sin servidor configurado");
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload),
+            redirect: "follow"
+        });
+        return res.json();
+    }
+    async function api(payload) {
+        const data = await post(Object.assign({ clave: ACCESO.clave }, payload));
+        if (data && data.auth) { mostrarLogin(true); throw new Error("Sesión no autorizada"); }
+        if (data && data.ok === false) throw new Error(data.error || "Error del servidor");
+        return data;
+    }
+
+    /* ================================================================
+       LOGIN / ROLES
+    ================================================================ */
+    function mostrarLogin(conError) {
+        const s = document.getElementById("loginScreen");
+        s.classList.remove("hidden"); s.classList.add("flex");
+        document.getElementById("loginError").classList.add("hidden");
+        if (conError) document.getElementById("inputClave").value = "";
+        setTimeout(() => document.getElementById("inputClave").focus(), 100);
+    }
+    function ocultarLogin() {
+        const s = document.getElementById("loginScreen");
+        s.classList.add("hidden"); s.classList.remove("flex");
+    }
+    function errorLogin(msg) {
+        const e = document.getElementById("loginError");
+        e.textContent = msg; e.classList.remove("hidden");
+    }
+
+    async function hacerLogin() {
+        const clave = document.getElementById("inputClave").value;
+        if (!clave) { errorLogin("Introduce la clave."); return; }
+        if (!getEndpoint()) { errorLogin("Configura primero el servidor (⚙️)."); return; }
+        const btn = document.getElementById("btnLogin");
+        btn.disabled = true; btn.textContent = "Entrando…";
+        const ok = await intentarLogin(clave, document.getElementById("recordarClave").checked, false);
+        btn.disabled = false; btn.textContent = "Entrar";
+        if (!ok) errorLogin("Clave incorrecta o sin conexión.");
+    }
+
+    async function intentarLogin(clave, recordar, silencioso) {
+        try {
+            setSync("verificando…", "bg-black/40");
+            const res = await post({ action: "login", clave });
+            if (res && res.ok) {
+                ACCESO = { clave, rol: res.rol };
+                if (recordar) setClave(clave); else setClave("");
+                aplicarRol();
+                ocultarLogin();
+                document.getElementById("btnSalir").classList.remove("hidden");
+                document.getElementById("barraVehiculo").classList.remove("hidden");
+                await cargarVehiculos();
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error(e);
+            if (!silencioso) errorLogin("No se pudo conectar con el servidor.");
+            return false;
+        }
+    }
+
+    function aplicarRol() {
+        document.body.classList.toggle("modo-consulta", !esEditor());
+        document.body.classList.toggle("rol-admin", esAdmin());
+        const badge = document.getElementById("rolBadge");
+        const etiquetas = { admin: "administrador", edicion: "edición", consulta: "consulta" };
+        badge.textContent = etiquetas[ACCESO.rol] || ACCESO.rol;
+        badge.className = "text-[10px] sm:text-xs px-2 py-0.5 rounded " + (esAdmin() ? "bg-red-900" : esEditor() ? "bg-emerald-800" : "bg-gray-700");
+        badge.classList.remove("hidden");
+        renderizarLista();
+    }
+
+    function cerrarSesion() {
+        if (!confirm("¿Cerrar sesión en este dispositivo?")) return;
+        ACCESO = { clave: "", rol: "" };
+        setClave("");
+        MATERIALES = []; VEHICULOS = []; vehiculoActual = "";
+        document.body.classList.remove("rol-admin", "modo-consulta");
+        document.getElementById("btnSalir").classList.add("hidden");
+        document.getElementById("rolBadge").classList.add("hidden");
+        document.getElementById("barraVehiculo").classList.add("hidden");
+        document.getElementById("listaMateriales").innerHTML = "";
+        mostrarLogin(true);
+    }
+
+    /* ================================================================
+       CARGA DE DATOS
+    ================================================================ */
+    function etiquetaVehiculo(v) {
+        if (!v) return "(sin asignar)";
+        let t = v.nombre || v.id;
+        if (v.matricula) t += " · " + v.matricula;
+        return t;
+    }
+    function vehiculoPorId(id) { return VEHICULOS.find(v => String(v.id) === String(id)); }
+    function nombreVehiculoPorId(id) { const v = vehiculoPorId(id); return v ? etiquetaVehiculo(v) : "(sin asignar)"; }
+
+    function poblarSelectVehiculos() {
+        const sel = document.getElementById("selVehiculo");
+        const fsel = document.getElementById("formVehiculo");
+        if (VEHICULOS.length) {
+            const opts = VEHICULOS.map(v => `<option value="${v.id}">${escapeHtml(etiquetaVehiculo(v))}</option>`).join("");
+            sel.innerHTML = opts + `<option value="ALL">— Todos los vehículos (flota) —</option>`;
+            fsel.innerHTML = opts;
+        } else {
+            sel.innerHTML = `<option value="">— Sin vehículos —</option>`;
+            fsel.innerHTML = `<option value="">— Crea un vehículo primero —</option>`;
+        }
+    }
+
+    async function cargarVehiculos() {
+        const url = getEndpoint();
+        if (!url || !ACCESO.clave) return;
+        try {
+            const data = await api({ action: "listVehiculos" });
+            VEHICULOS = data.vehiculos || [];
+            cachearVeh(VEHICULOS);
+        } catch (e) { console.error(e); VEHICULOS = leerCacheVeh(); }
+        poblarSelectVehiculos();
+        const guardado = getVehSel();
+        const existe = VEHICULOS.some(v => String(v.id) === String(guardado));
+        let objetivo = (guardado === "ALL" || existe) ? guardado : (VEHICULOS.length ? VEHICULOS[0].id : "");
+        // Si venimos de un QR con vehículo válido, prevalece
+        if (pendingDeep && pendingDeep.v && VEHICULOS.some(v => String(v.id) === String(pendingDeep.v))) {
+            objetivo = pendingDeep.v;
+        }
+        vehiculoActual = objetivo;
+        const sel = document.getElementById("selVehiculo");
+        if (sel) sel.value = vehiculoActual;
+        setVehSel(vehiculoActual);
+        const fsel = document.getElementById("formVehiculo");
+        if (fsel && !document.getElementById("itemId").value) {
+            fsel.value = (vehiculoActual && vehiculoActual !== "ALL") ? vehiculoActual : (VEHICULOS[0] ? VEHICULOS[0].id : "");
+        }
+        await cargarDatos();
+        // Aplicar sección del QR (si la trae) y limpiar el enlace profundo
+        if (pendingDeep) {
+            if (pendingDeep.s && SECCIONES.includes(pendingDeep.s)) {
+                const fs = document.getElementById("filterSeccion");
+                if (fs) { fs.value = pendingDeep.s; renderizarLista(); }
+            }
+            pendingDeep = null;
+        }
+    }
+
+    function cambiarVehiculo() {
+        vehiculoActual = document.getElementById("selVehiculo").value;
+        setVehSel(vehiculoActual);
+        cargarDatos();
+    }
+
+    async function cargarDatos() {
+        const url = getEndpoint();
+        if (!url) { setSync("sin servidor", "bg-amber-600 text-black"); return; }
+        if (!ACCESO.clave) { mostrarLogin(true); return; }
+        if (!VEHICULOS.length) {
+            document.getElementById("contadorTotal").textContent = "";
+            document.getElementById("listaMateriales").innerHTML =
+                `<div class="bg-gray-800 border border-gray-700 rounded-lg p-8 text-center text-gray-400">` +
+                (esAdmin() ? 'Aún no hay vehículos. Pulsa <b>🚚 Gestionar</b> (arriba) para crear el primero.'
+                           : 'El administrador aún no ha creado vehículos.') + `</div>`;
+            setSync(esAdmin() ? "crea un vehículo" : "sin vehículos", "bg-amber-700 text-black");
+            return;
+        }
+        setSync("cargando…", "bg-black/40");
+        try {
+            const data = await api({ action: "list", vehiculoId: vehiculoActual || "ALL" });
+            MATERIALES = (data.items || []).map(normalizar);
+            cachear(MATERIALES);
+            setSync("conectado ✓", "bg-emerald-700");
+            renderizarLista();
+        } catch (err) {
+            console.error(err);
+            const cache = leerCache();
+            if (cache.length) { MATERIALES = cache; renderizarLista(); }
+            setSync("sin conexión", "bg-red-900");
+        }
+    }
+    function normalizar(m) { m.estado = (m.estado === "FUERA DE SERVICIO") ? "FUERA DE SERVICIO" : "DISPONIBLE"; return m; }
+    function cachear(items) { try { localStorage.setItem("hazmat_cache", JSON.stringify(items)); } catch (e) {} }
+    function leerCache() { try { return JSON.parse(localStorage.getItem("hazmat_cache") || "[]"); } catch (e) { return []; } }
+
+    /* ================================================================
+       GESTIÓN DE VEHÍCULOS (admin)
+    ================================================================ */
+    function abrirVehiculos() {
+        if (!esAdmin()) return;
+        resetVehForm(); renderVehLista();
+        const m = document.getElementById("modalVeh"); m.classList.remove("hidden"); m.classList.add("flex");
+    }
+    function cerrarVehiculos() { const m = document.getElementById("modalVeh"); m.classList.add("hidden"); m.classList.remove("flex"); }
+    function resetVehForm() {
+        document.getElementById("vehId").value = "";
+        document.getElementById("vehNombre").value = "";
+        document.getElementById("vehMatricula").value = "";
+        document.getElementById("vehParque").value = "";
+        document.getElementById("vehFormTitulo").textContent = "Nuevo vehículo";
+    }
+    function renderVehLista() {
+        const cont = document.getElementById("vehLista");
+        if (!VEHICULOS.length) { cont.innerHTML = `<p class="text-xs text-gray-500 text-center py-3">No hay vehículos todavía.</p>`; return; }
+        cont.innerHTML = VEHICULOS.map(v => `<div class="flex items-center gap-2 bg-gray-900/50 border border-gray-700 rounded px-3 py-2">
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold truncate">🚚 ${escapeHtml(v.nombre || v.id)}</p>
+                <p class="text-[11px] text-gray-400 truncate">${escapeHtml([v.matricula, v.parque].filter(Boolean).join(" · "))}</p>
+            </div>
+            <button onclick="editarVehiculo('${v.id}')" class="text-xs text-blue-400 hover:text-blue-300 px-1">✏️</button>
+            <button onclick="borrarVehiculo('${v.id}')" class="text-xs text-red-400 hover:text-red-300 px-1">🗑️</button>
+        </div>`).join("");
+    }
+    function editarVehiculo(id) {
+        const v = vehiculoPorId(id); if (!v) return;
+        document.getElementById("vehId").value = v.id;
+        document.getElementById("vehNombre").value = v.nombre || "";
+        document.getElementById("vehMatricula").value = v.matricula || "";
+        document.getElementById("vehParque").value = v.parque || "";
+        document.getElementById("vehFormTitulo").textContent = "Editar vehículo";
+    }
+    async function guardarVehiculo() {
+        if (!esAdmin()) return;
+        const nombre = document.getElementById("vehNombre").value.trim();
+        if (!nombre) { alert("Pon un nombre al vehículo."); return; }
+        const vehiculo = {
+            id: document.getElementById("vehId").value || undefined,
+            nombre,
+            matricula: document.getElementById("vehMatricula").value.trim(),
+            parque: document.getElementById("vehParque").value.trim(),
+            activo: true
+        };
+        try {
+            await api({ action: vehiculo.id ? "updateVehiculo" : "addVehiculo", vehiculo });
+            resetVehForm();
+            await cargarVehiculos();
+            renderVehLista();
+        } catch (err) { alert("No se pudo guardar el vehículo: " + err.message); }
+    }
+    async function borrarVehiculo(id) {
+        if (!esAdmin()) return;
+        if (!confirm("¿Eliminar este vehículo?\n\nLos materiales que tuviera NO se borran, pero quedarán como «(sin asignar)» y podrás verlos eligiendo «Todos los vehículos».")) return;
+        try {
+            await api({ action: "deleteVehiculo", id });
+            if (String(vehiculoActual) === String(id)) { vehiculoActual = "ALL"; setVehSel("ALL"); }
+            await cargarVehiculos();
+            renderVehLista();
+        } catch (err) { alert("No se pudo borrar: " + err.message); }
+    }
+
+    /* ================================================================
+       CÓDIGOS QR (enlace profundo por vehículo / sección)
+    ================================================================ */
+    function leerDeepLink() {
+        try {
+            const p = new URLSearchParams(location.search);
+            const v = p.get("v");
+            if (v) pendingDeep = { v: v, s: p.get("s") || "" };
+        } catch (e) {}
+    }
+    function urlApp(params) {
+        const base = location.origin + location.pathname;
+        const qs = new URLSearchParams(params).toString();
+        return base + (qs ? "?" + qs : "");
+    }
+    function qrSVG(text, cell) {
+        const qr = qrcode(0, "M");      // tipo automático, corrección media
+        qr.addData(text); qr.make();
+        return qr.createSvgTag({ cellSize: cell || 4, margin: 2 });
+    }
+    function abrirQR() {
+        if (!VEHICULOS.length) { alert("Primero el administrador debe crear un vehículo."); return; }
+        if (!vehiculoActual || vehiculoActual === "ALL") { alert("Elige un vehículo concreto en el desplegable 🚚 para generar su QR."); return; }
+        renderQR();
+        const m = document.getElementById("modalQR"); m.classList.remove("hidden"); m.classList.add("flex");
+    }
+    function cerrarQR() { const m = document.getElementById("modalQR"); m.classList.add("hidden"); m.classList.remove("flex"); }
+    function toggleQRSecc() { qrIncluirSecc = document.getElementById("qrSecciones").checked; renderQR(); }
+    function renderQR() {
+        const cont = document.getElementById("qrContenido");
+        if (typeof qrcode === "undefined") {
+            cont.innerHTML = `<p class="text-sm text-red-600">No se pudo cargar el generador de QR. Conéctate a internet una vez para descargarlo y vuelve a intentarlo.</p>`;
+            return;
+        }
+        const v = vehiculoPorId(vehiculoActual);
+        const nombre = etiquetaVehiculo(v);
+        const urlVeh = urlApp({ v: vehiculoActual });
+        let html = `<div class="text-center">
+            <p class="font-bold text-base">🚚 ${escapeHtml(nombre)}</p>
+            <div class="flex justify-center my-2">${qrSVG(urlVeh, 5)}</div>
+            <p class="text-[11px] text-gray-500 break-all">${escapeHtml(urlVeh)}</p>
+            <p class="text-xs text-gray-600 mt-1">Escanéalo para abrir la app directamente en este vehículo.</p>
+        </div>
+        <label class="flex items-center gap-2 text-sm mt-3 cursor-pointer"><input type="checkbox" id="qrSecciones" onchange="toggleQRSecc()" ${qrIncluirSecc ? "checked" : ""}> Incluir un QR por sección (S1–S10 / TRAS)</label>`;
+        if (qrIncluirSecc) {
+            html += `<div class="grid grid-cols-3 gap-2 mt-2">`;
+            SECCIONES.forEach(sec => {
+                const u = urlApp({ v: vehiculoActual, s: sec });
+                html += `<div class="text-center border border-gray-200 rounded p-1"><div class="flex justify-center">${qrSVG(u, 3)}</div><p class="text-[11px] font-semibold mt-0.5">${sec}</p></div>`;
+            });
+            html += `</div>`;
+        }
+        cont.innerHTML = html;
+    }
+    function imprimirQR() {
+        if (typeof qrcode === "undefined") { alert("El generador de QR no está disponible sin conexión la primera vez."); return; }
+        const v = vehiculoPorId(vehiculoActual);
+        const nombre = etiquetaVehiculo(v);
+        let cuerpo = `<div class="cab"><h1>${escapeHtml(nombre)}</h1><p>Escanea para abrir el inventario en este vehículo</p></div>
+            <div class="big">${qrSVG(urlApp({ v: vehiculoActual }), 6)}<div class="lbl">${escapeHtml(nombre)}</div></div>`;
+        if (qrIncluirSecc) {
+            cuerpo += `<h2>Secciones</h2><div class="grid">`;
+            SECCIONES.forEach(sec => {
+                cuerpo += `<div class="cell">${qrSVG(urlApp({ v: vehiculoActual, s: sec }), 4)}<div class="lbl">${escapeHtml(v.nombre || "")} · ${sec}</div></div>`;
+            });
+            cuerpo += `</div>`;
+        }
+        const doc = `<html><head><meta charset="utf-8"><title>QR ${escapeHtml(nombre)}</title><style>
+            @page { size:A4; margin:1.2cm; }
+            body { font-family:Arial,sans-serif; text-align:center; color:#111; }
+            .cab h1 { color:#b91c1c; margin:0; font-size:20pt; } .cab p { margin:2pt 0 12pt; font-size:10pt; color:#444; }
+            h2 { color:#b91c1c; font-size:13pt; border-bottom:2px solid #b91c1c; margin:14pt 0 8pt; }
+            .big { margin:0 auto 10pt; } .big svg { width:210px; height:210px; } .lbl { font-weight:bold; font-size:11pt; margin-top:4pt; }
+            .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10pt; }
+            .cell { border:1px solid #ccc; border-radius:6pt; padding:6pt; page-break-inside:avoid; }
+            .cell svg { width:120px; height:120px; } .cell .lbl { font-size:9pt; }
+        </style></head><body>${cuerpo}</body></html>`;
+        const w = window.open("", "_blank");
+        w.document.write(doc); w.document.close();
+        setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 500);
+    }
+
+    /* ================================================================
+       CONFIG modal
+    ================================================================ */
+    function abrirConfig() {
+        document.getElementById("inputUrl").value = getEndpoint();
+        const m = document.getElementById("modalConfig"); m.classList.remove("hidden"); m.classList.add("flex");
+    }
+    function cerrarConfig() { const m = document.getElementById("modalConfig"); m.classList.add("hidden"); m.classList.remove("flex"); }
+    function guardarConfig() {
+        const url = document.getElementById("inputUrl").value.trim();
+        if (!/\/exec\/?$/.test(url)) { alert("La URL debe terminar en /exec"); return; }
+        setEndpoint(url); cerrarConfig();
+        document.getElementById("bannerConfig").classList.add("hidden");
+        if (!ACCESO.clave) mostrarLogin(true); else cargarVehiculos();
+    }
+
+    /* ================================================================
+       UBICACIÓN
+    ================================================================ */
+    function tieneCaja(s) { return !SECCIONES_SIN_CAJA.includes(s); }
+    function onSeccionChange() {
+        const s = document.getElementById("seccion").value;
+        const caja = document.getElementById("caja");
+        const aviso = document.getElementById("cajaAviso");
+        if (tieneCaja(s)) { caja.disabled = false; aviso.classList.add("hidden"); }
+        else { caja.disabled = true; caja.value = "A"; aviso.classList.remove("hidden"); }
+    }
+    function codigoUbicacion(m) {
+        const p = [m.seccion, m.nivel];
+        if (m.caja && tieneCaja(m.seccion)) p.push(CAJA_LABEL[m.caja] || m.caja);
+        if (m.fondo) p.push(FONDO_LABEL[m.fondo] || m.fondo);
+        return p.join(" · ");
+    }
+
+    /* ================================================================
+       FORMULARIO (móvil)
+    ================================================================ */
+    function toggleForm() {
+        const p = document.getElementById("formPanel");
+        p.classList.toggle("hidden");
+        if (!p.classList.contains("hidden")) p.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function mostrarFormSiOculto() {
+        const p = document.getElementById("formPanel");
+        if (window.innerWidth < 1024 && p.classList.contains("hidden")) p.classList.remove("hidden");
+    }
+
+    /* ================================================================
+       GALERÍA DE FOTOS
+    ================================================================ */
+    function esHeic(file) {
+        const n = (file.name || "").toLowerCase();
+        return file.type === "image/heic" || file.type === "image/heif" || n.endsWith(".heic") || n.endsWith(".heif");
+    }
+    function limpiarGaleria() {
+        galeriaURLs.forEach(u => URL.revokeObjectURL(u)); galeriaURLs = [];
+        const g = document.getElementById("galeria"); g.innerHTML = ""; g.classList.add("hidden");
+    }
+    async function cargarGaleria(event) {
+        const archivos = Array.from(event.target.files || []).filter(f => f.type.startsWith("image/") || esHeic(f));
+        event.target.value = "";
+        if (!archivos.length) return;
+        limpiarGaleria();
+        const galeria = document.getElementById("galeria");
+        const info = document.getElementById("galeriaInfo");
+        const MAX = 80, lista = archivos.slice(0, MAX);
+        info.textContent = `${lista.length} foto(s)${archivos.length > MAX ? " (primeras " + MAX + ")" : ""}. Toca la correcta.`;
+        galeria.classList.remove("hidden");
+        lista.forEach((file) => {
+            const tile = document.createElement("button");
+            tile.type = "button";
+            tile.className = "relative h-20 w-full rounded border border-gray-600 overflow-hidden bg-gray-700 flex items-center justify-center cursor-pointer hover:border-red-400 transition";
+            tile.title = file.name || "foto";
+            const img = document.createElement("img"); img.className = "h-full w-full object-cover";
+            const spin = document.createElement("span"); spin.className = "text-[10px] text-amber-400 px-1 text-center";
+            spin.textContent = esHeic(file) ? "HEIC…" : "…"; tile.appendChild(spin);
+            if (esHeic(file)) {
+                heic2any({ blob: file, toType: "image/jpeg", quality: 0.5 })
+                    .then(out => { const blob = Array.isArray(out) ? out[0] : out; const url = URL.createObjectURL(blob); galeriaURLs.push(url); img.src = url; tile.innerHTML = ""; tile.appendChild(img); })
+                    .catch(() => { spin.textContent = "⚠️"; });
+            } else {
+                const url = URL.createObjectURL(file); galeriaURLs.push(url);
+                img.onload = () => { tile.innerHTML = ""; tile.appendChild(img); }; img.src = url;
+            }
+            tile.onclick = () => seleccionarDeGaleria(file, tile);
+            galeria.appendChild(tile);
+        });
+    }
+    function reducirImagen(srcURL, maxLado = 1100, calidad = 0.78) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+                if (width > maxLado || height > maxLado) {
+                    if (width >= height) { height = Math.round(height * maxLado / width); width = maxLado; }
+                    else { width = Math.round(width * maxLado / height); height = maxLado; }
+                }
+                const c = document.createElement("canvas"); c.width = width; c.height = height;
+                c.getContext("2d").drawImage(img, 0, 0, width, height);
+                resolve(c.toDataURL("image/jpeg", calidad));
+            };
+            img.onerror = reject; img.src = srcURL;
+        });
+    }
+    async function seleccionarDeGaleria(file, tile) {
+        document.querySelectorAll("#galeria .tile-selected").forEach(t => t.classList.remove("tile-selected"));
+        tile.classList.add("tile-selected");
+        const loading = document.getElementById("loadingHeic");
+        const cont = document.getElementById("previewContainer");
+        const preview = document.getElementById("imgPreview");
+        cont.classList.remove("hidden");
+        try {
+            let urlTrabajo;
+            if (esHeic(file)) { loading.classList.remove("hidden"); const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 }); const blob = Array.isArray(out) ? out[0] : out; urlTrabajo = URL.createObjectURL(blob); }
+            else { urlTrabajo = URL.createObjectURL(file); }
+            imagenFormularioBase64 = await reducirImagen(urlTrabajo, 1100, 0.78);
+            imagenThumbBase64 = await reducirImagen(urlTrabajo, 200, 0.5);   // miniatura para hoja/informes
+            URL.revokeObjectURL(urlTrabajo);
+            preview.src = imagenFormularioBase64;
+        } catch (err) { console.error(err); alert("No se pudo procesar esa imagen."); }
+        finally { loading.classList.add("hidden"); }
+    }
+    function quitarFoto() {
+        imagenFormularioBase64 = "";
+        imagenThumbBase64 = "";
+        document.getElementById("imgPreview").src = "";
+        document.getElementById("previewContainer").classList.add("hidden");
+        document.querySelectorAll("#galeria .tile-selected").forEach(t => t.classList.remove("tile-selected"));
+    }
+
+    /* ================================================================
+       GUARDAR / EDITAR / BORRAR
+    ================================================================ */
+    async function guardarMaterial(event) {
+        event.preventDefault();
+        if (!esEditor()) { alert("Tu clave es solo de consulta."); return; }
+        const vehiculoId = document.getElementById("formVehiculo").value;
+        if (!vehiculoId) { alert("Selecciona un vehículo. Si no hay ninguno, el administrador debe crearlo primero."); return; }
+        const idVal = document.getElementById("itemId").value;
+        const seccion = document.getElementById("seccion").value;
+        const item = {
+            id: idVal || undefined,
+            vehiculoId,
+            nombre: document.getElementById("nombre").value.trim(),
+            seccion,
+            nivel: document.getElementById("nivel").value,
+            caja: tieneCaja(seccion) ? document.getElementById("caja").value : "",
+            fondo: document.getElementById("fondo").value,
+            categoria: document.getElementById("categoria").value,
+            estado: document.getElementById("disponible").checked ? "DISPONIBLE" : "FUERA DE SERVICIO",
+            descripcion: document.getElementById("descripcion").value.trim(),
+            especificaciones: document.getElementById("especificaciones").value.trim(),
+            notas: document.getElementById("notas").value.trim()
+        };
+        if (imagenFormularioBase64) item.fotoBase64 = imagenFormularioBase64;
+        if (imagenThumbBase64) item.fotoThumb = imagenThumbBase64;
+
+        const btn = document.getElementById("btnGuardar");
+        btn.disabled = true; btn.textContent = "Guardando…"; setSync("guardando…", "bg-black/40");
+        try {
+            await api({ action: idVal ? "update" : "add", item });
+            // mostrar el vehículo donde se acaba de guardar (salvo en vista de flota)
+            if (vehiculoActual !== "ALL" && String(vehiculoActual) !== String(vehiculoId)) {
+                vehiculoActual = vehiculoId; setVehSel(vehiculoId);
+                document.getElementById("selVehiculo").value = vehiculoId;
+            }
+            resetForm();
+            await cargarDatos();
+        }
+        catch (err) { console.error(err); alert("No se pudo guardar: " + err.message); setSync("error", "bg-red-900"); }
+        finally { btn.disabled = false; btn.textContent = "Guardar"; }
+    }
+
+    function editarMaterial(id) {
+        if (!esEditor()) return;
+        const m = MATERIALES.find(x => String(x.id) === String(id));
+        if (!m) return;
+        document.getElementById("itemId").value = m.id;
+        document.getElementById("formVehiculo").value = m.vehiculoId || (VEHICULOS[0] ? VEHICULOS[0].id : "");
+        document.getElementById("nombre").value = m.nombre || "";
+        document.getElementById("seccion").value = m.seccion || "S1";
+        onSeccionChange();
+        document.getElementById("nivel").value = m.nivel || "N1";
+        if (tieneCaja(m.seccion)) document.getElementById("caja").value = m.caja || "A";
+        document.getElementById("fondo").value = m.fondo || "F1";
+        document.getElementById("categoria").value = m.categoria || "TRASVASE";
+        document.getElementById("disponible").checked = (m.estado !== "FUERA DE SERVICIO");
+        document.getElementById("descripcion").value = m.descripcion || "";
+        document.getElementById("especificaciones").value = m.especificaciones || "";
+        document.getElementById("notas").value = m.notas || "";
+        limpiarGaleria(); quitarFoto();
+        if (m.fotoUrl || m.fotoId) {
+            document.getElementById("imgPreview").src = fotoSrc(m, 600);
+            document.getElementById("previewContainer").classList.remove("hidden");
+        }
+        document.getElementById("formTitulo").textContent = "Editar artículo";
+        mostrarFormSiOculto();
+        document.getElementById("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function borrarMaterial(id) {
+        if (!esEditor()) return;
+        if (!confirm("¿Eliminar este artículo del inventario?")) return;
+        setSync("borrando…", "bg-black/40");
+        try { await api({ action: "delete", id }); await cargarDatos(); }
+        catch (err) { alert("No se pudo borrar: " + err.message); }
+    }
+
+    async function toggleEstado(id) {
+        if (!esEditor()) return;
+        const m = MATERIALES.find(x => String(x.id) === String(id));
+        if (!m) return;
+        const item = Object.assign({}, m);
+        item.estado = m.estado === "FUERA DE SERVICIO" ? "DISPONIBLE" : "FUERA DE SERVICIO";
+        delete item.fotoBase64;
+        setSync("actualizando…", "bg-black/40");
+        try { await api({ action: "update", item }); await cargarDatos(); }
+        catch (err) { alert("No se pudo actualizar: " + err.message); }
+    }
+
+    function resetForm() {
+        document.getElementById("materialForm").reset();
+        document.getElementById("itemId").value = "";
+        document.getElementById("disponible").checked = true;
+        document.getElementById("formTitulo").textContent = "Añadir artículo";
+        const fsel = document.getElementById("formVehiculo");
+        if (fsel) fsel.value = (vehiculoActual && vehiculoActual !== "ALL") ? vehiculoActual : (VEHICULOS[0] ? VEHICULOS[0].id : "");
+        quitarFoto(); limpiarGaleria();
+        document.getElementById("galeriaInfo").textContent = "Abre una carpeta o selecciona fotos y toca la miniatura correcta.";
+        onSeccionChange();
+    }
+
+    /* ================================================================
+       FOTOS / LISTADO
+    ================================================================ */
+    function fotoSrc(m, w) {
+        if (m.fotoId) return "https://drive.google.com/thumbnail?id=" + m.fotoId + "&sz=w" + (w || 400);
+        return m.fotoUrl || "";
+    }
+    const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600" };
+
+    function filtrar() {
+        const q = document.getElementById("searchBar").value.toLowerCase();
+        const fSec = document.getElementById("filterSeccion").value;
+        const fEst = document.getElementById("filterEstado").value;
+        return MATERIALES.filter(m => {
+            if (fSec !== "TODOS" && m.seccion !== fSec) return false;
+            if (fEst === "DISPONIBLE" && m.estado === "FUERA DE SERVICIO") return false;
+            if (fEst === "FUERA" && m.estado !== "FUERA DE SERVICIO") return false;
+            if (!q) return true;
+            const blob = [m.nombre, m.categoria, m.descripcion, m.especificaciones, m.notas, m.estado, codigoUbicacion(m)].join(" ").toLowerCase();
+            return blob.includes(q);
+        });
+    }
+
+    function tarjetaMaterial(m, editor) {
+        const fuera = m.estado === "FUERA DE SERVICIO";
+        const color = COLOR_CAT[m.categoria] || "bg-gray-600";
+        const src = m.fotoThumb || ((m.fotoId || m.fotoUrl) ? fotoSrc(m, 200) : "");
+        const foto = src
+            ? `<img src="${src}" referrerpolicy="no-referrer" onclick="abrirLightbox('${m.id}')" class="h-16 w-16 rounded object-cover border border-gray-600 cursor-zoom-in flex-shrink-0">`
+            : `<div class="h-16 w-16 rounded bg-gray-700 border border-gray-600 flex items-center justify-center text-gray-500 text-xl flex-shrink-0">📦</div>`;
+        const estadoBadge = fuera
+            ? `<span class="bg-red-700 text-white text-[10px] px-1.5 py-0.5 rounded">⛔ FUERA DE SERVICIO</span>`
+            : `<span class="bg-emerald-700 text-white text-[10px] px-1.5 py-0.5 rounded">✓ Disponible</span>`;
+        const alerta = m.notas ? `<p class="text-[11px] text-amber-400 mt-1">⚠️ ${escapeHtml(m.notas)}</p>` : "";
+        const espec = m.especificaciones ? `<p class="text-[11px] text-gray-400 mt-1"><span class="text-gray-500">Téc.:</span> ${escapeHtml(m.especificaciones)}</p>` : "";
+        const desc = m.descripcion ? `<p class="text-xs text-gray-300 mt-0.5">${escapeHtml(m.descripcion)}</p>` : "";
+        const acciones = editor ? `<div class="flex flex-wrap gap-3 mt-2">
+                <button onclick="toggleEstado('${m.id}')" class="text-xs ${fuera ? 'text-emerald-400 hover:text-emerald-300' : 'text-amber-400 hover:text-amber-300'}">${fuera ? '↩️ Reponer' : '⛔ Fuera de servicio'}</button>
+                <button onclick="editarMaterial('${m.id}')" class="text-xs text-blue-400 hover:text-blue-300">✏️ Editar</button>
+                <button onclick="borrarMaterial('${m.id}')" class="text-xs text-red-400 hover:text-red-300">🗑️ Borrar</button>
+            </div>` : "";
+        return `<article class="bg-gray-800 border ${fuera ? 'border-red-800' : 'border-gray-700'} rounded-lg p-3 flex gap-3 ${fuera ? 'opacity-80' : ''}">
+            ${foto}
+            <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                    <h4 class="font-bold text-sm leading-tight ${fuera ? 'line-through decoration-red-500/60' : ''}">${escapeHtml(m.nombre)}</h4>
+                    <span class="${color} text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">${m.categoria}</span>
+                </div>
+                <p class="text-[11px] font-mono text-red-300 mt-0.5">📍 ${codigoUbicacion(m)}</p>
+                <div class="mt-1">${estadoBadge}</div>
+                ${desc}${espec}${alerta}${acciones}
+            </div>
+        </article>`;
+    }
+
+    function encabezado(etiqueta, n) {
+        return `<h3 class="text-sm font-bold text-red-400 mb-2 flex items-center gap-2"><span class="bg-red-700 text-white px-2 py-0.5 rounded">${escapeHtml(etiqueta)}</span><span class="text-gray-500 font-normal">${n} ítem(s)</span></h3>`;
+    }
+
+    function renderizarLista() {
+        const cont = document.getElementById("listaMateriales");
+        const contador = document.getElementById("contadorTotal");
+        const editor = esEditor();
+        const items = filtrar();
+        contador.textContent = `${items.length} artículo(s)` + (vehiculoActual && vehiculoActual !== "ALL" ? " · " + nombreVehiculoPorId(vehiculoActual) : (vehiculoActual === "ALL" ? " · flota completa" : ""));
+        if (!items.length) {
+            cont.innerHTML = `<div class="bg-gray-800 border border-gray-700 rounded-lg p-8 text-center text-gray-500">Sin resultados. Ajusta la búsqueda${editor ? " o añade un artículo" : ""}.</div>`;
+            return;
+        }
+        let html = "";
+        if (vehiculoActual === "ALL") {
+            // Agrupar por vehículo (trazabilidad de flota)
+            const grupos = {}; items.forEach(m => { const k = m.vehiculoId || "__none__"; (grupos[k] = grupos[k] || []).push(m); });
+            const claves = Object.keys(grupos).sort((a, b) => {
+                const na = a === "__none__" ? "zzz" : nombreVehiculoPorId(a);
+                const nb = b === "__none__" ? "zzz" : nombreVehiculoPorId(b);
+                return na.localeCompare(nb);
+            });
+            claves.forEach(k => {
+                const titulo = "🚚 " + (k === "__none__" ? "(sin asignar)" : nombreVehiculoPorId(k));
+                const lista = grupos[k].slice().sort((a, b) => codigoUbicacion(a).localeCompare(codigoUbicacion(b)));
+                html += `<section>${encabezado(titulo, lista.length)}<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
+                lista.forEach(m => html += tarjetaMaterial(m, editor));
+                html += `</div></section>`;
+            });
+        } else {
+            // Agrupar por sección
+            const orden = ["S1","S2","S3","S4","S5","S6","S7","S8","S9","S10","TRAS"];
+            const grupos = {}; items.forEach(m => { (grupos[m.seccion] = grupos[m.seccion] || []).push(m); });
+            orden.filter(s => grupos[s]).forEach(seccion => {
+                html += `<section>${encabezado(seccion, grupos[seccion].length)}<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
+                grupos[seccion].forEach(m => html += tarjetaMaterial(m, editor));
+                html += `</div></section>`;
+            });
+        }
+        cont.innerHTML = html;
+    }
+    function escapeHtml(str) { return String(str || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+    /* ================================================================
+       VISOR
+    ================================================================ */
+    function abrirLightbox(id) {
+        const m = MATERIALES.find(x => String(x.id) === String(id));
+        if (!m) return;
+        const src = m.fotoId ? fotoSrc(m, 1400) : (m.fotoThumb || m.fotoUrl || "");
+        if (!src) return;
+        document.getElementById("lightboxImg").src = src;
+        const lb = document.getElementById("lightbox"); lb.classList.remove("hidden"); lb.classList.add("flex");
+    }
+    function cerrarLightbox() { const lb = document.getElementById("lightbox"); lb.classList.add("hidden"); lb.classList.remove("flex"); }
+
+    /* ================================================================
+       INFORMES
+    ================================================================ */
+    function alcanceFiltrado() {
+        const a = document.getElementById("alcanceInforme").value;
+        return MATERIALES.filter(m => {
+            if (a === "DISPONIBLE") return m.estado !== "FUERA DE SERVICIO";
+            if (a === "FUERA") return m.estado === "FUERA DE SERVICIO";
+            return true;
+        });
+    }
+    function cabeceraInforme(titulo) {
+        const fecha = new Date().toLocaleString("es-ES");
+        const unidad = document.getElementById("unidadInforme").value.trim();
+        const sel = document.getElementById("alcanceInforme");
+        const a = sel.options[sel.selectedIndex].text;
+        const ambito = (vehiculoActual === "ALL")
+            ? "Flota completa (todos los vehículos)"
+            : ("Vehículo: " + escapeHtml(nombreVehiculoPorId(vehiculoActual)));
+        return `<h1>${titulo}</h1><p class="meta"><b>${ambito}</b><br>${unidad ? "Unidad: <b>" + escapeHtml(unidad) + "</b> &nbsp;·&nbsp; " : ""}Generado: ${fecha} &nbsp;·&nbsp; Alcance: ${a}</p>`;
+    }
+    function estiloWord() {
+        return `<style>
+            @page { size: A4; margin: 1.6cm; }
+            body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color:#111; }
+            h1 { font-size: 17pt; color:#b91c1c; margin:0 0 3pt; }
+            h2 { font-size: 13pt; color:#b91c1c; margin:14pt 0 4pt; border-bottom:2px solid #b91c1c; padding-bottom:2pt; }
+            .meta { font-size: 9pt; color:#555; margin:0 0 8pt; }
+            table { border-collapse: collapse; width:100%; font-size:9pt; margin-bottom:6pt; }
+            th, td { border:1px solid #999; padding:3pt 5pt; vertical-align:top; }
+            th { background:#b91c1c; color:#fff; text-align:left; }
+            tr:nth-child(even) td { background:#f3f3f3; }
+            .cod { font-family:Consolas,monospace; white-space:nowrap; }
+            td.foto { width:78px; text-align:center; }
+            td.foto img { max-width:72px; max-height:72px; }
+            .fuera { color:#b91c1c; font-weight:bold; }
+            .ok { color:#15803d; }
+            .pie { font-size:8pt; color:#777; margin-top:10pt; }
+        </style>`;
+    }
+    function celdaFoto(m) { return m.fotoThumb ? `<td class="foto"><img src="${m.fotoThumb}"></td>` : `<td class="foto">—</td>`; }
+
+    function tablaInventarioUbicacion(items, conVeh) {
+        const orden = ["S1","S2","S3","S4","S5","S6","S7","S8","S9","S10","TRAS"];
+        const grupos = {}; items.forEach(m => { (grupos[m.seccion] = grupos[m.seccion] || []).push(m); });
+        const thVeh = conVeh ? "<th>Vehículo</th>" : "";
+        let html = "";
+        orden.filter(s => grupos[s]).forEach(seccion => {
+            html += `<h2>Sección ${seccion} — ${grupos[seccion].length} artículo(s)</h2><table><tr><th>Foto</th><th>Ubicación</th>${thVeh}<th>Material</th><th>Categoría</th><th>Estado</th><th>Especificaciones</th><th>Alertas</th></tr>`;
+            grupos[seccion].forEach(m => {
+                const fuera = m.estado === "FUERA DE SERVICIO";
+                const tdVeh = conVeh ? `<td>${escapeHtml(nombreVehiculoPorId(m.vehiculoId))}</td>` : "";
+                html += `<tr>${celdaFoto(m)}<td class="cod">${codigoUbicacion(m)}</td>${tdVeh}<td>${escapeHtml(m.nombre)}</td><td>${escapeHtml(m.categoria)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
+            });
+            html += `</table>`;
+        });
+        return html || "<p>Sin artículos.</p>";
+    }
+    function tablaPorCategoria(items, conVeh) {
+        const cats = ["TRASVASE","TAPONAMIENTO","CONTENCION","DUCHA","EPI"];
+        const grupos = {}; items.forEach(m => { (grupos[m.categoria] = grupos[m.categoria] || []).push(m); });
+        const otras = Object.keys(grupos).filter(c => !cats.includes(c));
+        const thVeh = conVeh ? "<th>Vehículo</th>" : "";
+        let html = "";
+        cats.concat(otras).filter(c => grupos[c]).forEach(cat => {
+            html += `<h2>${cat} — ${grupos[cat].length} artículo(s)</h2><table><tr><th>Foto</th><th>Material</th>${thVeh}<th>Ubicación</th><th>Estado</th><th>Especificaciones</th><th>Alertas</th></tr>`;
+            grupos[cat].forEach(m => {
+                const fuera = m.estado === "FUERA DE SERVICIO";
+                const tdVeh = conVeh ? `<td>${escapeHtml(nombreVehiculoPorId(m.vehiculoId))}</td>` : "";
+                html += `<tr>${celdaFoto(m)}<td>${escapeHtml(m.nombre)}</td>${tdVeh}<td class="cod">${codigoUbicacion(m)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
+            });
+            html += `</table>`;
+        });
+        return html || "<p>Sin artículos.</p>";
+    }
+    function informe(tipo, salida) {
+        const items = alcanceFiltrado();
+        if (!items.length) { alert("No hay materiales que cumplan el alcance seleccionado."); return; }
+        const titulo = tipo === "ubicacion" ? "Inventario Hazmat por ubicación" : "Materiales por categoría de intervención";
+        const conVeh = (vehiculoActual === "ALL");
+        const cuerpo = tipo === "ubicacion" ? tablaInventarioUbicacion(items, conVeh) : tablaPorCategoria(items, conVeh);
+        const total = `<p class="pie">Total en el informe: ${items.length} artículo(s).</p>`;
+        const docHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>${titulo}</title>${estiloWord()}</head><body>${cabeceraInforme(titulo)}${cuerpo}${total}</body></html>`;
+        if (salida === "word") {
+            const suf = conVeh ? "flota" : (nombreVehiculoPorId(vehiculoActual).split(" ")[0] || "vehiculo").replace(/[^\w-]/g, "");
+            const nombre = `informe_${tipo}_${suf}_${new Date().toISOString().slice(0,10)}.doc`;
+            const blob = new Blob(["\ufeff" + docHtml], { type: "application/msword" });
+            const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        } else {
+            const w = window.open("", "_blank");
+            w.document.write(docHtml); w.document.close();
+            setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 400);
+        }
+    }
+
+    /* ================================================================
+       BACKUP
+    ================================================================ */
+    function exportarDatos() {
+        const blob = new Blob([JSON.stringify(MATERIALES, null, 2)], { type: "application/json" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        a.download = `inventario_hazmat_${new Date().toISOString().slice(0,10)}.json`; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    async function importarDatos(event) {
+        const file = event.target.files[0]; if (!file) return;
+        if (!esEditor()) { alert("Necesitas clave de edición o admin para importar."); event.target.value = ""; return; }
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+            try {
+                const datos = JSON.parse(ev.target.result);
+                if (!Array.isArray(datos)) throw new Error("Formato no válido");
+                if (!confirm(`Se subirán ${datos.length} artículo(s) al servidor. ¿Continuar?`)) return;
+                setSync("importando…", "bg-black/40");
+                for (const m of datos) { const item = Object.assign({}, m); delete item.id; delete item.fotoBase64; if (!item.vehiculoId && vehiculoActual && vehiculoActual !== "ALL") item.vehiculoId = vehiculoActual; await api({ action: "add", item }); }
+                await cargarDatos(); alert("Importación completada.");
+            } catch (err) { alert("Archivo no válido: " + err.message); }
+            event.target.value = "";
+        };
+        reader.readAsText(file);
+    }
+
+    /* ================================================================
+       ARRANQUE
+    ================================================================ */
+    async function iniciar() {
+        const url = getEndpoint();
+        document.getElementById("bannerConfig").classList.toggle("hidden", !!url);
+        if (!url) { setSync("sin servidor", "bg-amber-600 text-black"); abrirConfig(); return; }
+        const claveGuardada = getClave();
+        if (claveGuardada) {
+            const ok = await intentarLogin(claveGuardada, true, true);
+            if (ok) return;
+        }
+        mostrarLogin(true);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        onSeccionChange();
+        leerDeepLink();
+        document.getElementById("modalConfig").addEventListener("click", cerrarConfig);
+        document.getElementById("modalVeh").addEventListener("click", cerrarVehiculos);
+        document.getElementById("modalQR").addEventListener("click", cerrarQR);
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarLightbox(); });
+        iniciar();
+    });
+    </script>
+
+    <!-- Registro del Service Worker (PWA / offline) -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch((err) => console.warn('SW no registrado:', err));
+        });
+    }
+    </script>
+</body>
+</html>
