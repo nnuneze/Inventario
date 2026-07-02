@@ -815,6 +815,16 @@
             img.onerror = reject; img.src = srcURL;
         });
     }
+    // Genera un JPG en base64 lo mayor posible que quepa en una celda de Sheets (límite 50.000 car.)
+    async function reducirImagenAjustada(srcURL, maxChars = 45000) {
+        const intentos = [[1024,0.75],[900,0.72],[820,0.68],[740,0.62],[660,0.56],[580,0.5],[500,0.46],[440,0.42],[380,0.4],[320,0.38]];
+        let ultima = "";
+        for (const [lado, q] of intentos) {
+            ultima = await reducirImagen(srcURL, lado, q);
+            if (ultima.length <= maxChars) return ultima;
+        }
+        return ultima;
+    }
     async function seleccionarDeGaleria(file, tile) {
         document.querySelectorAll("#galeria .tile-selected").forEach(t => t.classList.remove("tile-selected"));
         tile.classList.add("tile-selected");
@@ -826,8 +836,8 @@
             let urlTrabajo;
             if (esHeic(file)) { loading.classList.remove("hidden"); const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 }); const blob = Array.isArray(out) ? out[0] : out; urlTrabajo = URL.createObjectURL(blob); }
             else { urlTrabajo = URL.createObjectURL(file); }
-            imagenFormularioBase64 = await reducirImagen(urlTrabajo, 1100, 0.78);
-            imagenThumbBase64 = await reducirImagen(urlTrabajo, 200, 0.5);   // miniatura para hoja/informes
+            imagenFormularioBase64 = await reducirImagenAjustada(urlTrabajo);   // JPG que se guarda en la hoja
+            imagenThumbBase64 = imagenFormularioBase64;
             URL.revokeObjectURL(urlTrabajo);
             preview.src = imagenFormularioBase64;
         } catch (err) { console.error(err); alert("No se pudo procesar esa imagen."); }
@@ -865,8 +875,7 @@
             especificaciones: document.getElementById("especificaciones").value.trim(),
             notas: document.getElementById("notas").value.trim()
         };
-        if (imagenFormularioBase64) item.fotoBase64 = imagenFormularioBase64;
-        if (imagenThumbBase64) item.fotoThumb = imagenThumbBase64;
+        if (imagenFormularioBase64) item.foto = imagenFormularioBase64;
 
         const btn = document.getElementById("btnGuardar");
         btn.disabled = true; btn.textContent = "Guardando…"; setSync("guardando…", "bg-black/40");
@@ -902,8 +911,9 @@
         document.getElementById("especificaciones").value = m.especificaciones || "";
         document.getElementById("notas").value = m.notas || "";
         limpiarGaleria(); quitarFoto();
-        if (m.fotoUrl || m.fotoId) {
-            document.getElementById("imgPreview").src = fotoSrc(m, 600);
+        const prevSrc = fotoImg(m);
+        if (prevSrc) {
+            document.getElementById("imgPreview").src = prevSrc;
             document.getElementById("previewContainer").classList.remove("hidden");
         }
         document.getElementById("formTitulo").textContent = "Editar artículo";
@@ -950,6 +960,12 @@
         if (m.fotoId) return "https://drive.google.com/thumbnail?id=" + m.fotoId + "&sz=w" + (w || 400);
         return m.fotoUrl || "";
     }
+    // Mejor origen de imagen: la foto guardada en la hoja tiene prioridad
+    function fotoImg(m) {
+        if (m.foto) return m.foto;
+        if (m.fotoThumb) return m.fotoThumb;
+        return fotoSrc(m, 600);
+    }
     const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600" };
 
     function filtrar() {
@@ -969,7 +985,7 @@
     function tarjetaMaterial(m, editor) {
         const fuera = m.estado === "FUERA DE SERVICIO";
         const color = COLOR_CAT[m.categoria] || "bg-gray-600";
-        const src = m.fotoThumb || ((m.fotoId || m.fotoUrl) ? fotoSrc(m, 200) : "");
+        const src = fotoImg(m);
         const foto = src
             ? `<img src="${src}" referrerpolicy="no-referrer" onclick="abrirLightbox('${m.id}')" class="h-16 w-16 rounded object-cover border border-gray-300 cursor-zoom-in flex-shrink-0">`
             : `<div class="h-16 w-16 rounded bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-500 text-xl flex-shrink-0">📦</div>`;
@@ -1048,7 +1064,7 @@
     function abrirLightbox(id) {
         const m = MATERIALES.find(x => String(x.id) === String(id));
         if (!m) return;
-        const src = m.fotoId ? fotoSrc(m, 1400) : (m.fotoThumb || m.fotoUrl || "");
+        const src = fotoImg(m);
         if (!src) return;
         document.getElementById("lightboxImg").src = src;
         const lb = document.getElementById("lightbox"); lb.classList.remove("hidden"); lb.classList.add("flex");
@@ -1095,7 +1111,7 @@
             .pie { font-size:8pt; color:#777; margin-top:10pt; }
         </style>`;
     }
-    function celdaFoto(m) { return m.fotoThumb ? `<td class="foto"><img src="${m.fotoThumb}"></td>` : `<td class="foto">—</td>`; }
+    function celdaFoto(m) { const s = m.foto || m.fotoThumb; return s ? `<td class="foto"><img src="${s}"></td>` : `<td class="foto">—</td>`; }
 
     function tablaInventarioUbicacion(items, conVeh) {
         const orden = ["S1","S2","S3","S4","S5","S6","S7","S8","S9","S10","TRAS"];
