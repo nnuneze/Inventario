@@ -6,7 +6,7 @@
  *    propia app (localStorage).
  *  Sube la versión (CACHE) cada vez que cambies index.html.
  * ============================================================ */
-const CACHE = 'hazmat-v7';
+const CACHE = 'hazmat-v8';
 
 const SHELL = [
   './',

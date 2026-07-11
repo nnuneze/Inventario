@@ -1025,7 +1025,7 @@
         document.getElementById("manId").value = "";
         document.getElementById("manNombre").value = "";
         document.getElementById("manEditar").value = "";
-        document.getElementById("btnManBorrar").style.display = "none";
+        document.getElementById("btnManBorrar").classList.add("hidden");
     }
     function renderChecklist(seleccion) {
         const cont = document.getElementById("manMateriales");
@@ -1046,12 +1046,12 @@
     function cargarManiobraEnForm() {
         const id = document.getElementById("manEditar").value;
         const man = MANIOBRAS.find(x => String(x.id) === String(id));
-        if (!man) { document.getElementById("manId").value = ""; document.getElementById("manNombre").value = ""; document.getElementById("btnManBorrar").style.display = "none"; renderChecklist([]); return; }
+        if (!man) { document.getElementById("manId").value = ""; document.getElementById("manNombre").value = ""; document.getElementById("btnManBorrar").classList.add("hidden"); renderChecklist([]); return; }
         document.getElementById("manId").value = man.id;
         document.getElementById("manNombre").value = man.nombre || "";
         const ids = String(man.materiales || "").split(",").map(s => s.trim()).filter(Boolean);
         renderChecklist(ids);
-        document.getElementById("btnManBorrar").style.display = "";
+        document.getElementById("btnManBorrar").classList.remove("hidden");
     }
     async function guardarManiobra() {
         if (!esEditor()) return;
