@@ -96,7 +96,68 @@
                 <option value="">— Sin vehículos —</option>
             </select>
             <button onclick="abrirQR()" class="bg-gray-100 hover:bg-gray-200 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🔳 QR</button>
+            <button onclick="volverAlMenu()" class="solo-admin bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">‹ Menú</button>
             <button onclick="abrirVehiculos()" class="solo-admin bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🚚 Gestionar</button>
+        </div>
+    </div>
+
+    <!-- ============ PANTALLAS GUIADAS DE ADMINISTRADOR ============ -->
+    <!-- Pantalla A: elegir vehículo -->
+    <div id="pantVehiculo" class="hidden fixed inset-0 z-[140] bg-white items-start justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-md mt-6">
+            <div class="text-center mb-5">
+                <div class="text-3xl mb-1">🚒</div>
+                <h2 class="text-lg font-bold">Selecciona el vehículo</h2>
+                <p class="text-xs text-gray-600">Elige el camión con el que vas a trabajar</p>
+            </div>
+            <div id="pvLista" class="space-y-2"></div>
+            <button onclick="elegirVehiculoAdmin('ALL')" class="w-full mt-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg px-4 py-3 text-sm font-semibold">🔎 Ver toda la flota</button>
+            <div class="flex gap-2 mt-4">
+                <button onclick="abrirVehiculos()" class="flex-1 bg-red-700 hover:bg-red-600 text-white rounded-lg px-3 py-2.5 text-sm font-semibold">🚚 Gestionar vehículos</button>
+                <button onclick="cerrarSesion()" class="bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-2.5 text-sm font-semibold">🔓 Salir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla B: menú del vehículo -->
+    <div id="pantMenu" class="hidden fixed inset-0 z-[140] bg-white items-start justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-md mt-8">
+            <button onclick="volverAElegirVehiculo()" class="text-sm text-gray-600 hover:text-gray-900 mb-3">‹ Cambiar vehículo</button>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5 text-center">
+                <p class="text-xs text-gray-500">Vehículo seleccionado</p>
+                <p id="pmVehiculo" class="text-lg font-bold text-red-700">—</p>
+            </div>
+            <div class="space-y-3">
+                <button onclick="verMaterialAdmin()" class="w-full bg-blue-700 hover:bg-blue-600 text-white rounded-lg px-4 py-5 text-base font-bold flex items-center gap-3 justify-center">📋 Ver material e informes</button>
+                <button id="btnMenuAnadir" onclick="entrarAlta()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg px-4 py-5 text-base font-bold flex items-center gap-3 justify-center">➕ Añadir material</button>
+            </div>
+            <button onclick="cerrarSesion()" class="w-full mt-5 bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-2.5 text-sm font-semibold">🔓 Salir</button>
+        </div>
+    </div>
+
+    <!-- Pantalla C: alta guiada de material -->
+    <div id="pantAlta" class="hidden fixed inset-0 z-[140] bg-white flex-col">
+        <div class="bg-emerald-700 text-white px-4 py-3 flex items-center gap-3 shrink-0">
+            <button onclick="salirAltaSinGuardar()" class="text-white/90 hover:text-white text-sm">‹ Volver</button>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs text-white/80 leading-none">Añadir material a</p>
+                <p id="altaVehiculo" class="font-bold truncate leading-tight">—</p>
+            </div>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+            <div class="container mx-auto max-w-4xl p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div id="altaFormSlot"></div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 mb-2">Previsualización de la ficha</p>
+                    <div id="fichaPreview"></div>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 shrink-0">
+            <div class="container mx-auto max-w-4xl flex flex-col sm:flex-row gap-2">
+                <button onclick="guardarMaterialAlta(false)" id="btnAltaNuevo" class="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white py-3 rounded-lg font-bold transition">➕ Añadir nuevo material</button>
+                <button onclick="guardarMaterialAlta(true)" id="btnAltaFin" class="flex-1 bg-red-700 hover:bg-red-600 text-white py-3 rounded-lg font-bold transition">✅ Finalizar</button>
+            </div>
         </div>
     </div>
 
@@ -160,7 +221,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Nivel</label>
                             <select id="nivel" class="w-full bg-gray-100 border border-gray-300 rounded px-1.5 py-2 text-xs focus:outline-none focus:border-red-500 cursor-pointer">
-                                <option value="SUELO">SUELO</option><option value="N1">N1 (bajo)</option><option value="N2">N2 (medio)</option><option value="N3">N3 (alto)</option>
+                                <option value="SUELO">SUELO</option><option value="N1">N1</option><option value="N2">N2</option><option value="N3">N3</option>
                             </select>
                         </div>
                         <div>
@@ -184,6 +245,7 @@
                             <option value="TRASVASE">TRASVASE</option><option value="TAPONAMIENTO">TAPONAMIENTO</option>
                             <option value="CONTENCION">CONTENCION</option><option value="DUCHA">DUCHA</option><option value="EPI">EPI</option>
                             <option value="MAT AUXILIAR">MAT AUXILIAR</option>
+                            <option value="MATERIAL ELECTRICO">MATERIAL ELECTRICO</option>
                         </select>
                     </div>
 
@@ -206,7 +268,7 @@
                         <input type="text" id="notas" placeholder="EPI obligatorio, revisiones…" class="w-full bg-gray-100 border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
                     </div>
 
-                    <div class="flex gap-2 pt-1">
+                    <div id="formAcciones" class="flex gap-2 pt-1">
                         <button type="submit" id="btnGuardar" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded text-sm font-bold transition cursor-pointer">Guardar</button>
                         <button type="button" onclick="resetForm()" class="bg-gray-100 hover:bg-gray-200 px-3 py-2.5 rounded text-sm transition cursor-pointer">Limpiar</button>
                     </div>
@@ -332,6 +394,8 @@
     let imagenThumbBase64 = "";
     let galeriaURLs = [];
     let ACCESO = { clave: "", rol: "" };
+    let enAlta = false;               // dentro de la pantalla de alta guiada
+    let formHome = null, formHomeNext = null;   // posición original del formulario
 
     function esEditor() { return ACCESO.rol === "admin" || ACCESO.rol === "edicion"; }
     function esAdmin()  { return ACCESO.rol === "admin"; }
@@ -417,7 +481,9 @@
                 ocultarLogin();
                 document.getElementById("btnSalir").classList.remove("hidden");
                 document.getElementById("barraVehiculo").classList.remove("hidden");
+                const teniaDeep = !!pendingDeep;
                 await cargarVehiculos();
+                if (esAdmin() && !teniaDeep) iniciarFlujoAdmin();
                 return true;
             }
             return false;
@@ -445,11 +511,167 @@
         setClave("");
         MATERIALES = []; VEHICULOS = []; vehiculoActual = "";
         document.body.classList.remove("rol-admin", "modo-consulta");
+        if (enAlta) devolverForm();
+        enAlta = false;
+        ocultarPantallasAdmin();
         document.getElementById("btnSalir").classList.add("hidden");
         document.getElementById("rolBadge").classList.add("hidden");
         document.getElementById("barraVehiculo").classList.add("hidden");
         document.getElementById("listaMateriales").innerHTML = "";
         mostrarLogin(true);
+    }
+
+    /* ================================================================
+       FLUJO GUIADO DE ADMINISTRADOR (3 pantallas)
+    ================================================================ */
+    function ocultarPantallasAdmin() {
+        ["pantVehiculo","pantMenu","pantAlta"].forEach(id => {
+            const e = document.getElementById(id);
+            if (e) { e.classList.add("hidden"); e.classList.remove("flex"); }
+        });
+    }
+    function mostrarPantalla(id) {
+        ocultarPantallasAdmin();
+        const e = document.getElementById(id);
+        e.classList.remove("hidden");
+        e.classList.add("flex");
+        window.scrollTo(0, 0);
+    }
+    function iniciarFlujoAdmin() { renderPantVehiculo(); mostrarPantalla("pantVehiculo"); }
+
+    function renderPantVehiculo() {
+        const cont = document.getElementById("pvLista");
+        if (!cont) return;
+        if (!VEHICULOS.length) {
+            cont.innerHTML = `<p class="text-gray-600 text-center py-4">Aún no hay vehículos. Pulsa «Gestionar vehículos» para crear el primero.</p>`;
+            return;
+        }
+        cont.innerHTML = VEHICULOS.map(v => `<button onclick="elegirVehiculoAdmin('${v.id}')" class="w-full text-left bg-white hover:bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 font-semibold flex items-center gap-2">
+            <span>🚚</span><span class="flex-1 min-w-0 truncate">${escapeHtml(etiquetaVehiculo(v))}</span><span class="text-gray-400">›</span></button>`).join("");
+    }
+    function elegirVehiculoAdmin(id) {
+        vehiculoActual = id; setVehSel(id);
+        const sel = document.getElementById("selVehiculo"); if (sel) sel.value = id;
+        cargarDatos();
+        renderPantMenu();
+        mostrarPantalla("pantMenu");
+    }
+    function volverAElegirVehiculo() { renderPantVehiculo(); mostrarPantalla("pantVehiculo"); }
+    function renderPantMenu() {
+        document.getElementById("pmVehiculo").textContent =
+            (vehiculoActual === "ALL") ? "Toda la flota" : etiquetaVehiculo(vehiculoPorId(vehiculoActual));
+        // no se puede añadir a "toda la flota"
+        document.getElementById("btnMenuAnadir").style.display = (vehiculoActual === "ALL") ? "none" : "";
+    }
+    function verMaterialAdmin() { ocultarPantallasAdmin(); }
+    function volverAlMenu() {
+        if (!esAdmin()) return;
+        if (enAlta) return;   // desde el alta se sale con sus botones
+        renderPantMenu();
+        mostrarPantalla("pantMenu");
+    }
+
+    /* ---- posición del formulario (para moverlo a la pantalla de alta) ---- */
+    function guardarPosicionForm() {
+        const fp = document.getElementById("formPanel");
+        formHome = fp.parentNode; formHomeNext = fp.nextSibling;
+    }
+    function moverFormAAlta() {
+        const fp = document.getElementById("formPanel");
+        document.getElementById("altaFormSlot").appendChild(fp);
+        fp.classList.remove("hidden");
+        fp.style.position = "static"; fp.style.top = "auto";
+        document.getElementById("formAcciones").style.display = "none";  // usamos los botones de la pantalla
+    }
+    function devolverForm() {
+        const fp = document.getElementById("formPanel");
+        fp.style.position = ""; fp.style.top = "";
+        document.getElementById("formAcciones").style.display = "";
+        if (!fp.classList.contains("hidden")) fp.classList.add("hidden"); // vuelve oculto en móvil (lg:block lo muestra en PC)
+        if (formHome) formHome.insertBefore(fp, formHomeNext);
+    }
+
+    function entrarAlta() {
+        if (vehiculoActual === "ALL" || !vehiculoActual) { alert("Elige un vehículo concreto para añadir material."); return; }
+        enAlta = true;
+        resetForm();
+        document.getElementById("formVehiculo").value = vehiculoActual;
+        moverFormAAlta();
+        document.getElementById("altaVehiculo").textContent = etiquetaVehiculo(vehiculoPorId(vehiculoActual));
+        actualizarFichaPreview();
+        mostrarPantalla("pantAlta");
+        setTimeout(() => document.getElementById("nombre").focus(), 100);
+    }
+    function salirAlta() {          // vuelve al menú (tras grabar)
+        enAlta = false;
+        devolverForm();
+        renderPantMenu();
+        mostrarPantalla("pantMenu");
+    }
+    function salirAltaSinGuardar() {
+        if (document.getElementById("nombre").value.trim() &&
+            !confirm("Vas a salir sin guardar la ficha actual. ¿Continuar?")) return;
+        salirAlta();
+    }
+
+    function actualizarFichaPreview() {
+        const cont = document.getElementById("fichaPreview");
+        if (!cont) return;
+        const seccion = document.getElementById("seccion").value;
+        const m = {
+            id: "preview",
+            nombre: document.getElementById("nombre").value.trim() || "(sin nombre)",
+            seccion,
+            nivel: document.getElementById("nivel").value,
+            caja: tieneCaja(seccion) ? document.getElementById("caja").value : "",
+            fondo: document.getElementById("fondo").value,
+            categoria: document.getElementById("categoria").value,
+            estado: document.getElementById("disponible").checked ? "DISPONIBLE" : "FUERA DE SERVICIO",
+            descripcion: document.getElementById("descripcion").value.trim(),
+            especificaciones: document.getElementById("especificaciones").value.trim(),
+            notas: document.getElementById("notas").value.trim(),
+            foto: imagenFormularioBase64 || ""
+        };
+        cont.innerHTML = tarjetaMaterial(m, false);
+    }
+
+    async function guardarMaterialAlta(finalizar) {
+        if (!esEditor()) return;
+        const vehiculoId = document.getElementById("formVehiculo").value;
+        if (!vehiculoId) { alert("No hay vehículo seleccionado."); return; }
+        const nombre = document.getElementById("nombre").value.trim();
+        if (!nombre) {
+            if (finalizar) { salirAlta(); return; }   // nada que grabar; solo volver
+            alert("Pon un nombre al material."); return;
+        }
+        const seccion = document.getElementById("seccion").value;
+        const item = {
+            vehiculoId, nombre, seccion,
+            nivel: document.getElementById("nivel").value,
+            caja: tieneCaja(seccion) ? document.getElementById("caja").value : "",
+            fondo: document.getElementById("fondo").value,
+            categoria: document.getElementById("categoria").value,
+            estado: document.getElementById("disponible").checked ? "DISPONIBLE" : "FUERA DE SERVICIO",
+            descripcion: document.getElementById("descripcion").value.trim(),
+            especificaciones: document.getElementById("especificaciones").value.trim(),
+            notas: document.getElementById("notas").value.trim()
+        };
+        if (imagenFormularioBase64) item.foto = imagenFormularioBase64;
+
+        const b1 = document.getElementById("btnAltaNuevo"), b2 = document.getElementById("btnAltaFin");
+        b1.disabled = b2.disabled = true;
+        setSync("guardando…", "bg-black/40");
+        try {
+            await api({ action: "add", item });
+            setSync("guardado ✓", "bg-emerald-700");
+            resetForm();
+            document.getElementById("formVehiculo").value = vehiculoId;
+            actualizarFichaPreview();
+            if (finalizar) { await cargarDatos(); salirAlta(); }
+            else { setTimeout(() => document.getElementById("nombre").focus(), 50); }
+        } catch (err) {
+            console.error(err); alert("No se pudo guardar: " + err.message); setSync("error", "bg-red-900");
+        } finally { b1.disabled = b2.disabled = false; }
     }
 
     /* ================================================================
@@ -486,6 +708,7 @@
             cachearVeh(VEHICULOS);
         } catch (e) { console.error(e); VEHICULOS = leerCacheVeh(); }
         poblarSelectVehiculos();
+        if (document.getElementById("pvLista")) renderPantVehiculo();
         const guardado = getVehSel();
         const existe = VEHICULOS.some(v => String(v.id) === String(guardado));
         let objetivo = (guardado === "ALL" || existe) ? guardado : (VEHICULOS.length ? VEHICULOS[0].id : "");
@@ -841,6 +1064,7 @@
             imagenThumbBase64 = imagenFormularioBase64;
             URL.revokeObjectURL(urlTrabajo);
             preview.src = imagenFormularioBase64;
+            if (enAlta) actualizarFichaPreview();
         } catch (err) { console.error(err); alert("No se pudo procesar esa imagen."); }
         finally { loading.classList.add("hidden"); }
     }
@@ -850,6 +1074,7 @@
         document.getElementById("imgPreview").src = "";
         document.getElementById("previewContainer").classList.add("hidden");
         document.querySelectorAll("#galeria .tile-selected").forEach(t => t.classList.remove("tile-selected"));
+        if (enAlta) actualizarFichaPreview();
     }
 
     /* ================================================================
@@ -967,7 +1192,7 @@
         if (m.fotoThumb) return m.fotoThumb;
         return fotoSrc(m, 600);
     }
-    const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600", "MAT AUXILIAR": "bg-slate-600" };
+    const COLOR_CAT = { TRASVASE: "bg-blue-600", TAPONAMIENTO: "bg-amber-600", CONTENCION: "bg-emerald-600", DUCHA: "bg-cyan-600", EPI: "bg-purple-600", "MAT AUXILIAR": "bg-slate-600", "MATERIAL ELECTRICO": "bg-yellow-500" };
 
     function filtrar() {
         const q = document.getElementById("searchBar").value.toLowerCase();
@@ -1095,7 +1320,7 @@
     }
     function estiloWord() {
         return `<style>
-            @page { size: A4; margin: 1.6cm; }
+            @page { size: A4 landscape; margin: 1.3cm; }
             body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color:#111; }
             h1 { font-size: 17pt; color:#b91c1c; margin:0 0 3pt; }
             h2 { font-size: 13pt; color:#b91c1c; margin:14pt 0 4pt; border-bottom:2px solid #b91c1c; padding-bottom:2pt; }
@@ -1105,8 +1330,8 @@
             th { background:#b91c1c; color:#fff; text-align:left; }
             tr:nth-child(even) td { background:#f3f3f3; }
             .cod { font-family:Consolas,monospace; white-space:nowrap; }
-            td.foto { width:78px; text-align:center; }
-            td.foto img { max-width:72px; max-height:72px; }
+            td.foto { width:46px; text-align:center; }
+            td.foto img { max-width:42px; max-height:42px; }
             .fuera { color:#b91c1c; font-weight:bold; }
             .ok { color:#15803d; }
             .pie { font-size:8pt; color:#777; margin-top:10pt; }
@@ -1120,28 +1345,28 @@
         const thVeh = conVeh ? "<th>Vehículo</th>" : "";
         let html = "";
         orden.filter(s => grupos[s]).forEach(seccion => {
-            html += `<h2>Sección ${seccion} — ${grupos[seccion].length} artículo(s)</h2><table><tr><th>Foto</th><th>Ubicación</th>${thVeh}<th>Material</th><th>Categoría</th><th>Estado</th><th>Especificaciones</th><th>Alertas</th></tr>`;
+            html += `<h2>Sección ${seccion} — ${grupos[seccion].length} artículo(s)</h2><table><tr><th>Foto</th><th>Ubicación</th>${thVeh}<th>Material</th><th>Categoría</th><th>Estado</th><th>Descripción</th><th>Especificaciones</th><th>Alertas</th></tr>`;
             grupos[seccion].forEach(m => {
                 const fuera = m.estado === "FUERA DE SERVICIO";
                 const tdVeh = conVeh ? `<td>${escapeHtml(nombreVehiculoPorId(m.vehiculoId))}</td>` : "";
-                html += `<tr>${celdaFoto(m)}<td class="cod">${codigoUbicacion(m)}</td>${tdVeh}<td>${escapeHtml(m.nombre)}</td><td>${escapeHtml(m.categoria)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
+                html += `<tr>${celdaFoto(m)}<td class="cod">${codigoUbicacion(m)}</td>${tdVeh}<td>${escapeHtml(m.nombre)}</td><td>${escapeHtml(m.categoria)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.descripcion)}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
             });
             html += `</table>`;
         });
         return html || "<p>Sin artículos.</p>";
     }
     function tablaPorCategoria(items, conVeh) {
-        const cats = ["TRASVASE","TAPONAMIENTO","CONTENCION","DUCHA","EPI","MAT AUXILIAR"];
+        const cats = ["TRASVASE","TAPONAMIENTO","CONTENCION","DUCHA","EPI","MAT AUXILIAR","MATERIAL ELECTRICO"];
         const grupos = {}; items.forEach(m => { (grupos[m.categoria] = grupos[m.categoria] || []).push(m); });
         const otras = Object.keys(grupos).filter(c => !cats.includes(c));
         const thVeh = conVeh ? "<th>Vehículo</th>" : "";
         let html = "";
         cats.concat(otras).filter(c => grupos[c]).forEach(cat => {
-            html += `<h2>${cat} — ${grupos[cat].length} artículo(s)</h2><table><tr><th>Foto</th><th>Material</th>${thVeh}<th>Ubicación</th><th>Estado</th><th>Especificaciones</th><th>Alertas</th></tr>`;
+            html += `<h2>${cat} — ${grupos[cat].length} artículo(s)</h2><table><tr><th>Foto</th><th>Material</th>${thVeh}<th>Ubicación</th><th>Estado</th><th>Descripción</th><th>Especificaciones</th><th>Alertas</th></tr>`;
             grupos[cat].forEach(m => {
                 const fuera = m.estado === "FUERA DE SERVICIO";
                 const tdVeh = conVeh ? `<td>${escapeHtml(nombreVehiculoPorId(m.vehiculoId))}</td>` : "";
-                html += `<tr>${celdaFoto(m)}<td>${escapeHtml(m.nombre)}</td>${tdVeh}<td class="cod">${codigoUbicacion(m)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
+                html += `<tr>${celdaFoto(m)}<td>${escapeHtml(m.nombre)}</td>${tdVeh}<td class="cod">${codigoUbicacion(m)}</td><td class="${fuera ? 'fuera' : 'ok'}">${fuera ? 'FUERA DE SERVICIO' : 'Disponible'}</td><td>${escapeHtml(m.descripcion)}</td><td>${escapeHtml(m.especificaciones)}</td><td>${escapeHtml(m.notas)}</td></tr>`;
             });
             html += `</table>`;
         });
@@ -1213,6 +1438,10 @@
     document.addEventListener("DOMContentLoaded", () => {
         onSeccionChange();
         leerDeepLink();
+        guardarPosicionForm();
+        const form = document.getElementById("materialForm");
+        form.addEventListener("input", () => { if (enAlta) actualizarFichaPreview(); });
+        form.addEventListener("change", () => { if (enAlta) actualizarFichaPreview(); });
         document.getElementById("modalConfig").addEventListener("click", cerrarConfig);
         document.getElementById("modalVeh").addEventListener("click", cerrarVehiculos);
         document.getElementById("modalQR").addEventListener("click", cerrarQR);
