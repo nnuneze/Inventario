@@ -130,6 +130,7 @@
             <div class="space-y-3">
                 <button onclick="verMaterialAdmin()" class="w-full bg-blue-700 hover:bg-blue-600 text-white rounded-lg px-4 py-5 text-base font-bold flex items-center gap-3 justify-center">📋 Ver material e informes</button>
                 <button id="btnMenuAnadir" onclick="entrarAlta()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg px-4 py-5 text-base font-bold flex items-center gap-3 justify-center">➕ Añadir material</button>
+                <button id="btnMenuManiobra" onclick="abrirManiobras()" class="w-full bg-red-700 hover:bg-red-600 text-white rounded-lg px-4 py-5 text-base font-bold flex items-center gap-3 justify-center">🧭 Crear maniobra</button>
             </div>
             <button onclick="cerrarSesion()" class="w-full mt-5 bg-gray-200 hover:bg-gray-300 rounded-lg px-3 py-2.5 text-sm font-semibold">🔓 Salir</button>
         </div>
@@ -296,6 +297,18 @@
                     </div>
                 </div>
 
+                <!-- Maniobras -->
+                <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-sm font-bold text-red-600 mb-2">🧭 Maniobras (material por tipo de intervención)</h3>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="abrirManiobras()" class="solo-editor bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">🧭 Crear / editar maniobra</button>
+                        <select id="selManiobra" class="flex-1 bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                            <option value="">— Sin maniobras —</option>
+                        </select>
+                        <button onclick="informeManiobraSel()" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-2 rounded text-xs font-semibold transition cursor-pointer">📄 Informe de maniobra (PDF)</button>
+                    </div>
+                </div>
+
                 <div class="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200 flex flex-col sm:flex-row gap-2">
                     <input type="text" id="searchBar" oninput="renderizarLista()" placeholder="🔍 Buscar por nombre, categoría o código (ej: S3·N2)…" class="flex-1 bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
                     <select id="filterSeccion" onchange="renderizarLista()" class="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
@@ -365,6 +378,27 @@
         </div>
     </div>
 
+    <div id="modalMan" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
+        <div class="bg-gray-50 border border-gray-300 rounded-lg p-5 max-w-lg w-full max-h-[88vh] overflow-y-auto flex flex-col" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-red-700 mb-1">🧭 Crear / editar maniobra</h3>
+            <p class="text-xs text-gray-600 mb-3">Vehículo: <span id="manVehiculo" class="font-semibold">—</span></p>
+            <input type="hidden" id="manId">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                <input type="text" id="manNombre" placeholder="Nombre de la maniobra (ej: TRASVASE ÁCIDO)" class="bg-white border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500">
+                <select id="manEditar" onchange="cargarManiobraEnForm()" class="bg-white border border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-red-500 cursor-pointer">
+                    <option value="">— Nueva maniobra —</option>
+                </select>
+            </div>
+            <p class="text-xs font-semibold text-gray-600 mb-1">Selecciona el material necesario (ordenado por ubicación):</p>
+            <div id="manMateriales" class="flex-1 overflow-y-auto border border-gray-200 rounded bg-white px-2 mb-3" style="max-height:40vh"></div>
+            <div class="flex gap-2">
+                <button onclick="guardarManiobra()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar maniobra</button>
+                <button id="btnManBorrar" onclick="borrarManiobra()" class="hidden bg-gray-200 hover:bg-gray-300 text-red-700 px-3 py-2 rounded text-sm font-semibold transition">Eliminar</button>
+                <button onclick="cerrarManiobras()" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm transition">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalConfig" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
         <div class="bg-gray-50 border border-gray-300 rounded-lg p-5 max-w-md w-full" onclick="event.stopPropagation()">
             <h3 class="text-lg font-bold text-red-600 mb-2">⚙️ Conexión al servidor</h3>
@@ -386,6 +420,19 @@
     const CAJA_LABEL  = { A: "Derecha", B: "Izquierda" };
     const FONDO_LABEL = { F1: "Delantera", F2: "Media", F3: "Trasera" };
     let MATERIALES = [];
+    let MANIOBRAS = [];
+    const SEC_ORD  = { S1:1,S2:2,S3:3,S4:4,S5:5,S6:6,S7:7,S8:8,S9:9,S10:10,TRAS:11 };
+    const NIV_ORD  = { SUELO:0, N1:1, N2:2, N3:3 };
+    const CAJA_ORD = { A:1, B:2 };
+    const FON_ORD  = { F1:1, F2:2, F3:3 };
+    function claveUbic(m) {
+        const s = SEC_ORD[m.seccion] || 99;
+        const n = (NIV_ORD[m.nivel] !== undefined ? NIV_ORD[m.nivel] : 9);
+        const c = CAJA_ORD[m.caja] || 0;
+        const f = FON_ORD[m.fondo] || 0;
+        return s * 1000 + n * 100 + c * 10 + f;
+    }
+    function ordenarPorUbicacion(arr) { return arr.slice().sort((a, b) => claveUbic(a) - claveUbic(b)); }
     let VEHICULOS = [];
     let vehiculoActual = "";
     let pendingDeep = null;       // enlace profundo pendiente (QR): { v, s }
@@ -483,6 +530,7 @@
                 document.getElementById("barraVehiculo").classList.remove("hidden");
                 const teniaDeep = !!pendingDeep;
                 await cargarVehiculos();
+                await cargarManiobras();
                 if (esAdmin() && !teniaDeep) iniciarFlujoAdmin();
                 return true;
             }
@@ -553,6 +601,7 @@
         vehiculoActual = id; setVehSel(id);
         const sel = document.getElementById("selVehiculo"); if (sel) sel.value = id;
         cargarDatos();
+        poblarSelectManiobras();
         renderPantMenu();
         mostrarPantalla("pantMenu");
     }
@@ -562,6 +611,7 @@
             (vehiculoActual === "ALL") ? "Toda la flota" : etiquetaVehiculo(vehiculoPorId(vehiculoActual));
         // no se puede añadir a "toda la flota"
         document.getElementById("btnMenuAnadir").style.display = (vehiculoActual === "ALL") ? "none" : "";
+        document.getElementById("btnMenuManiobra").style.display = (vehiculoActual === "ALL") ? "none" : "";
     }
     function verMaterialAdmin() { ocultarPantallasAdmin(); }
     function volverAlMenu() {
@@ -739,6 +789,7 @@
         vehiculoActual = document.getElementById("selVehiculo").value;
         setVehSel(vehiculoActual);
         cargarDatos();
+        poblarSelectManiobras();
     }
 
     async function cargarDatos() {
@@ -930,6 +981,140 @@
             .cell { border:1px solid #ccc; border-radius:6pt; padding:6pt; page-break-inside:avoid; }
             .cell svg { width:120px; height:120px; } .cell .lbl { font-size:9pt; }
         </style></head><body>${cuerpo}</body></html>`;
+        const w = window.open("", "_blank");
+        w.document.write(doc); w.document.close();
+        setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 500);
+    }
+
+    /* ================================================================
+       MANIOBRAS (material por tipo de intervención)
+    ================================================================ */
+    async function cargarManiobras() {
+        if (!getEndpoint() || !ACCESO.clave) return;
+        try { const d = await api({ action: "listManiobras" }); MANIOBRAS = d.maniobras || []; }
+        catch (e) { console.error(e); }
+        poblarSelectManiobras();
+    }
+    function maniobrasDelVehiculo() {
+        return MANIOBRAS.filter(x => vehiculoActual === "ALL" || String(x.vehiculoId) === String(vehiculoActual));
+    }
+    function poblarSelectManiobras() {
+        const sel = document.getElementById("selManiobra");
+        if (!sel) return;
+        const lista = maniobrasDelVehiculo();
+        sel.innerHTML = lista.length
+            ? lista.map(x => `<option value="${x.id}">${escapeHtml(x.nombre)}${vehiculoActual === "ALL" ? " — " + escapeHtml(nombreVehiculoPorId(x.vehiculoId)) : ""}</option>`).join("")
+            : `<option value="">— Sin maniobras —</option>`;
+    }
+    function opcionesManEditar() {
+        const lista = MANIOBRAS.filter(x => String(x.vehiculoId) === String(vehiculoActual));
+        return `<option value="">— Nueva maniobra —</option>` + lista.map(x => `<option value="${x.id}">${escapeHtml(x.nombre)}</option>`).join("");
+    }
+
+    function abrirManiobras() {
+        if (!esEditor()) return;
+        if (!vehiculoActual || vehiculoActual === "ALL") { alert("Elige un vehículo concreto para crear una maniobra."); return; }
+        document.getElementById("manVehiculo").textContent = etiquetaVehiculo(vehiculoPorId(vehiculoActual));
+        document.getElementById("manEditar").innerHTML = opcionesManEditar();
+        resetManForm();
+        renderChecklist([]);
+        const m = document.getElementById("modalMan"); m.classList.remove("hidden"); m.classList.add("flex");
+    }
+    function cerrarManiobras() { const m = document.getElementById("modalMan"); m.classList.add("hidden"); m.classList.remove("flex"); }
+    function resetManForm() {
+        document.getElementById("manId").value = "";
+        document.getElementById("manNombre").value = "";
+        document.getElementById("manEditar").value = "";
+        document.getElementById("btnManBorrar").style.display = "none";
+    }
+    function renderChecklist(seleccion) {
+        const cont = document.getElementById("manMateriales");
+        const items = ordenarPorUbicacion(MATERIALES.filter(m => String(m.vehiculoId) === String(vehiculoActual)));
+        if (!items.length) { cont.innerHTML = `<p class="text-sm text-gray-500 py-3 text-center">Este vehículo no tiene material cargado.</p>`; return; }
+        cont.innerHTML = items.map(m => {
+            const checked = seleccion.indexOf(String(m.id)) !== -1 ? "checked" : "";
+            const src = m.foto || m.fotoThumb || "";
+            const img = src ? `<img src="${src}" class="h-8 w-8 rounded object-cover border border-gray-300 flex-shrink-0">` : `<span class="w-8 text-center text-gray-400 flex-shrink-0">📦</span>`;
+            return `<label class="flex items-center gap-2 py-1.5 border-b border-gray-100 cursor-pointer">
+                <input type="checkbox" class="man-chk accent-red-600 w-4 h-4 flex-shrink-0" value="${m.id}" ${checked}>
+                ${img}
+                <span class="text-[11px] font-mono text-red-700 whitespace-nowrap">${codigoUbicacion(m)}</span>
+                <span class="text-sm flex-1 min-w-0 truncate">${escapeHtml(m.nombre)}</span>
+            </label>`;
+        }).join("");
+    }
+    function cargarManiobraEnForm() {
+        const id = document.getElementById("manEditar").value;
+        const man = MANIOBRAS.find(x => String(x.id) === String(id));
+        if (!man) { document.getElementById("manId").value = ""; document.getElementById("manNombre").value = ""; document.getElementById("btnManBorrar").style.display = "none"; renderChecklist([]); return; }
+        document.getElementById("manId").value = man.id;
+        document.getElementById("manNombre").value = man.nombre || "";
+        const ids = String(man.materiales || "").split(",").map(s => s.trim()).filter(Boolean);
+        renderChecklist(ids);
+        document.getElementById("btnManBorrar").style.display = "";
+    }
+    async function guardarManiobra() {
+        if (!esEditor()) return;
+        const nombre = document.getElementById("manNombre").value.trim();
+        if (!nombre) { alert("Pon un nombre a la maniobra."); return; }
+        const ids = Array.from(document.querySelectorAll(".man-chk:checked")).map(c => c.value);
+        if (!ids.length && !confirm("No has seleccionado ningún material. ¿Guardar la maniobra vacía?")) return;
+        const maniobra = { id: document.getElementById("manId").value || undefined, vehiculoId: vehiculoActual, nombre, materiales: ids.join(",") };
+        try {
+            await api({ action: maniobra.id ? "updateManiobra" : "addManiobra", maniobra });
+            await cargarManiobras();
+            document.getElementById("manEditar").innerHTML = opcionesManEditar();
+            resetManForm();
+            renderChecklist([]);
+            alert("Maniobra guardada.");
+        } catch (e) { alert("No se pudo guardar: " + e.message); }
+    }
+    async function borrarManiobra() {
+        const id = document.getElementById("manId").value; if (!id) return;
+        if (!confirm("¿Eliminar esta maniobra?")) return;
+        try {
+            await api({ action: "deleteManiobra", id });
+            await cargarManiobras();
+            document.getElementById("manEditar").innerHTML = opcionesManEditar();
+            resetManForm();
+            renderChecklist([]);
+            alert("Maniobra eliminada.");
+        } catch (e) { alert("No se pudo eliminar: " + e.message); }
+    }
+
+    function informeManiobraSel() {
+        const id = document.getElementById("selManiobra").value;
+        if (!id) { alert("Elige una maniobra en el desplegable."); return; }
+        const man = MANIOBRAS.find(x => String(x.id) === String(id));
+        if (!man) return;
+        const ids = String(man.materiales || "").split(",").map(s => s.trim()).filter(Boolean);
+        const items = ordenarPorUbicacion(MATERIALES.filter(m => ids.indexOf(String(m.id)) !== -1));
+        if (!items.length) { alert("La maniobra no tiene material disponible en el vehículo cargado."); return; }
+        generarPDFManiobra(man, items);
+    }
+    function generarPDFManiobra(man, items) {
+        const veh = nombreVehiculoPorId(man.vehiculoId);
+        const fecha = new Date().toLocaleString("es-ES");
+        const celdas = items.map(m => {
+            const src = m.foto || m.fotoThumb || "";
+            const img = src ? `<img src="${src}">` : `<div class="sinfoto">📦</div>`;
+            return `<div class="card">${img}<div class="ub">${codigoUbicacion(m)}</div></div>`;
+        }).join("");
+        const doc = `<html><head><meta charset="utf-8"><title>Maniobra ${escapeHtml(man.nombre)}</title><style>
+            @page { size: A4 landscape; margin: 1cm; }
+            body { font-family: Arial, sans-serif; color:#111; }
+            h1 { color:#b91c1c; font-size:16pt; margin:0; }
+            .meta { font-size:9pt; color:#555; margin:2pt 0 10pt; }
+            .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8pt; }
+            .card { border:1px solid #bbb; border-radius:5pt; padding:5pt; text-align:center; page-break-inside:avoid; }
+            .card img { width:100%; max-height:3.4cm; object-fit:cover; border-radius:3pt; }
+            .sinfoto { font-size:30pt; }
+            .ub { font-family:Consolas,monospace; font-weight:bold; font-size:9pt; color:#b91c1c; margin-top:3pt; }
+        </style></head><body>
+            <h1>Maniobra: ${escapeHtml(man.nombre)}</h1>
+            <div class="meta">Vehículo: ${escapeHtml(veh)} · ${items.length} elemento(s) · ${fecha} · orden por ubicación</div>
+            <div class="grid">${celdas}</div>
+        </body></html>`;
         const w = window.open("", "_blank");
         w.document.write(doc); w.document.close();
         setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 500);
@@ -1445,6 +1630,7 @@
         document.getElementById("modalConfig").addEventListener("click", cerrarConfig);
         document.getElementById("modalVeh").addEventListener("click", cerrarVehiculos);
         document.getElementById("modalQR").addEventListener("click", cerrarQR);
+        document.getElementById("modalMan").addEventListener("click", cerrarManiobras);
         document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarLightbox(); });
         iniciar();
     });
