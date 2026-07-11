@@ -393,7 +393,7 @@
             <div id="manMateriales" class="flex-1 overflow-y-auto border border-gray-200 rounded bg-white px-2 mb-3" style="max-height:40vh"></div>
             <div class="flex gap-2">
                 <button onclick="guardarManiobra()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded text-sm font-bold transition">Guardar maniobra</button>
-                <button id="btnManBorrar" onclick="borrarManiobra()" class="hidden bg-gray-200 hover:bg-gray-300 text-red-700 px-3 py-2 rounded text-sm font-semibold transition">Eliminar</button>
+                <button id="btnManBorrar" onclick="borrarManiobra()" class="hidden bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-bold transition">🗑️ Eliminar maniobra</button>
                 <button onclick="cerrarManiobras()" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-sm transition">Cerrar</button>
             </div>
         </div>
@@ -1095,25 +1095,33 @@
     function generarPDFManiobra(man, items) {
         const veh = nombreVehiculoPorId(man.vehiculoId);
         const fecha = new Date().toLocaleString("es-ES");
-        const celdas = items.map(m => {
+        const filas = items.map(m => {
             const src = m.foto || m.fotoThumb || "";
             const img = src ? `<img src="${src}">` : `<div class="sinfoto">📦</div>`;
-            return `<div class="card">${img}<div class="ub">${codigoUbicacion(m)}</div></div>`;
+            return `<tr>
+                <td class="cfoto">${img}</td>
+                <td class="cub">${codigoUbicacion(m)}</td>
+                <td class="cnom">${escapeHtml(m.nombre)}</td>
+            </tr>`;
         }).join("");
         const doc = `<html><head><meta charset="utf-8"><title>Maniobra ${escapeHtml(man.nombre)}</title><style>
             @page { size: A4 landscape; margin: 1cm; }
             body { font-family: Arial, sans-serif; color:#111; }
             h1 { color:#b91c1c; font-size:16pt; margin:0; }
             .meta { font-size:9pt; color:#555; margin:2pt 0 10pt; }
-            .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8pt; }
-            .card { border:1px solid #bbb; border-radius:5pt; padding:5pt; text-align:center; page-break-inside:avoid; }
-            .card img { width:100%; max-height:3.4cm; object-fit:cover; border-radius:3pt; }
+            table { border-collapse: collapse; width:100%; }
+            th, td { border:1px solid #999; padding:5pt 8pt; vertical-align:middle; }
+            th { background:#b91c1c; color:#fff; text-align:left; font-size:10pt; }
+            tr { page-break-inside: avoid; }
+            .cfoto { width:7cm; text-align:center; }
+            .cfoto img { max-width:6.5cm; max-height:4.5cm; width:auto; height:auto; object-fit:contain; }
             .sinfoto { font-size:30pt; }
-            .ub { font-family:Consolas,monospace; font-weight:bold; font-size:9pt; color:#b91c1c; margin-top:3pt; }
+            .cub { font-family:Consolas,monospace; font-weight:bold; font-size:11pt; color:#b91c1c; white-space:nowrap; width:5cm; }
+            .cnom { font-size:12pt; }
         </style></head><body>
             <h1>Maniobra: ${escapeHtml(man.nombre)}</h1>
             <div class="meta">Vehículo: ${escapeHtml(veh)} · ${items.length} elemento(s) · ${fecha} · orden por ubicación</div>
-            <div class="grid">${celdas}</div>
+            <table><tr><th>Fotografía</th><th>Ubicación</th><th>Material</th></tr>${filas}</table>
         </body></html>`;
         const w = window.open("", "_blank");
         w.document.write(doc); w.document.close();
