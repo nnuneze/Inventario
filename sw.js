@@ -1,12 +1,13 @@
 /* ============================================================
  *  Service Worker — Inventario Hazmat (PWA)
- *  - Cachea el "app shell" para poder abrir la app sin conexión.
- *  - NUNCA cachea las llamadas al servidor de datos (Apps Script):
- *    esas van siempre a la red; los datos se cachean aparte en la
- *    propia app (localStorage).
- *  Sube la versión (CACHE) cada vez que cambies index.html.
+ *  - Con conexión SIEMPRE trae la versión fresca (no hace falta
+ *    cambiar ningún número de versión al desplegar).
+ *  - Sin conexión usa la última copia cacheada.
+ *  - NUNCA cachea las llamadas al servidor de datos (Apps Script /
+ *    Drive): esas van siempre a la red.
+ *  La app se autoactualiza sola cuando cambia el index.html.
  * ============================================================ */
-const CACHE = 'hazmat-v8';
+const CACHE = 'hazmat-app';   // nombre fijo; el contenido se refresca solo
 
 const SHELL = [
   './',
@@ -21,16 +22,16 @@ const SHELL = [
   './icons/favicon-32.png'
 ];
 
-// Instala y precachea el shell
+// Instala y precachea el shell (pidiendo copias frescas)
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(u))))
+      .then((c) => Promise.allSettled(SHELL.map((u) => c.add(new Request(u, { cache: 'reload' })))))
       .then(() => self.skipWaiting())
   );
 });
 
-// Limpia versiones antiguas
+// Limpia cachés antiguas (incluidas las versionadas antiguas hazmat-vN)
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
@@ -54,15 +55,30 @@ self.addEventListener('fetch', (event) => {
   // Datos y fotos de Google: siempre a la red, sin cachear
   if (esApiDatos(url)) return;
 
-  // Navegación (abrir la app): red primero, si falla → index cacheado
+  // Navegación (abrir/recargar la app): RED primero (sin caché del navegador),
+  // guardamos copia para offline, y si no hay red usamos la copia.
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('./index.html'))
+      fetch(req, { cache: 'no-store' })
+        .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('./index.html', copy)); return res; })
+        .catch(() => caches.match('./index.html').then((r) => r || caches.match('./')))
     );
     return;
   }
 
-  // Scripts de CDN (tailwind, heic2any): stale-while-revalidate
+  // Recursos propios (iconos, manifest…): red primero para que se actualicen solos,
+  // con la caché como reserva sin conexión.
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Scripts de CDN (tailwind, heic2any, qr): stale-while-revalidate
   if (url.hostname.includes('cdn.jsdelivr.net')) {
     event.respondWith(
       caches.open(CACHE).then((cache) =>
@@ -74,15 +90,4 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-
-  // Resto (iconos, shell): cache primero, red de reserva
-  event.respondWith(
-    caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-      if (res.ok && url.origin === self.location.origin) {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy));
-      }
-      return res;
-    }).catch(() => hit))
-  );
 });
