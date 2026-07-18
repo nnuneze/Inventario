@@ -35,6 +35,7 @@
            (se añade material desde la pantalla guiada). Sí aparece dentro de la pantalla de alta. */
         body.rol-admin #formPanel { display: none !important; }
         #pantAlta #formPanel { display: block !important; }
+        #modalEditar #formPanel { display: block !important; }
         body.rol-admin #toggleMovil { display: none !important; }
         body.rol-admin #zonaLista { grid-column: 1 / -1 !important; }
     </style>
@@ -416,6 +417,13 @@
         </div>
     </div>
 
+    <div id="modalEditar" class="hidden fixed inset-0 z-[212] bg-black/60 items-start justify-center p-4 overflow-y-auto">
+        <div class="w-full max-w-md my-6 relative" onclick="event.stopPropagation()">
+            <button onclick="cerrarEdicion()" class="absolute -top-3 -right-3 z-10 bg-red-700 hover:bg-red-600 text-white rounded-full w-9 h-9 text-lg leading-none font-bold shadow-md">✕</button>
+            <div id="editFormSlot"></div>
+        </div>
+    </div>
+
     <div id="modalMan" class="hidden fixed inset-0 z-[210] bg-black/70 items-center justify-center p-4">
         <div class="bg-gray-50 border border-gray-300 rounded-lg p-5 max-w-lg w-full max-h-[88vh] overflow-y-auto flex flex-col" onclick="event.stopPropagation()">
             <h3 class="text-lg font-bold text-red-700 mb-1">🧭 Crear / editar maniobra</h3>
@@ -480,6 +488,7 @@
     let galeriaURLs = [];
     let ACCESO = { clave: "", rol: "" };
     let enAlta = false;               // dentro de la pantalla de alta guiada
+    let enEdicion = false;            // dentro del modal de edición
     let formHome = null, formHomeNext = null;   // posición original del formulario
 
     function esEditor() { return ACCESO.rol === "admin" || ACCESO.rol === "edicion"; }
@@ -1339,7 +1348,8 @@
                 vehiculoActual = vehiculoId; setVehSel(vehiculoId);
                 document.getElementById("selVehiculo").value = vehiculoId;
             }
-            resetForm();
+            if (enEdicion) { cerrarEdicion(); }
+            else { resetForm(); }
             await cargarDatos();
         }
         catch (err) { console.error(err); alert("No se pudo guardar: " + err.message); setSync("error", "bg-red-900"); }
@@ -1370,8 +1380,26 @@
             document.getElementById("previewContainer").classList.remove("hidden");
         }
         document.getElementById("formTitulo").textContent = "Editar artículo";
-        mostrarFormSiOculto();
-        document.getElementById("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+        abrirEdicion();
+    }
+
+    function abrirEdicion() {
+        enEdicion = true;
+        const fp = document.getElementById("formPanel");
+        document.getElementById("editFormSlot").appendChild(fp);
+        fp.classList.remove("hidden");
+        fp.style.position = "static"; fp.style.top = "auto";
+        document.getElementById("formAcciones").style.display = "";   // botón Guardar visible
+        const m = document.getElementById("modalEditar");
+        m.classList.remove("hidden"); m.classList.add("flex");
+        window.scrollTo(0, 0);
+    }
+    function cerrarEdicion() {
+        enEdicion = false;
+        const m = document.getElementById("modalEditar");
+        m.classList.add("hidden"); m.classList.remove("flex");
+        devolverForm();
+        resetForm();
     }
 
     async function borrarMaterial(id) {
@@ -1700,6 +1728,7 @@
         document.getElementById("modalVeh").addEventListener("click", cerrarVehiculos);
         document.getElementById("modalQR").addEventListener("click", cerrarQR);
         document.getElementById("modalMan").addEventListener("click", cerrarManiobras);
+        document.getElementById("modalEditar").addEventListener("click", cerrarEdicion);
         document.addEventListener("keydown", (e) => { if (e.key === "Escape") { cerrarLightbox(); cerrarVistaImpresion(); } });
         iniciar();
     });
