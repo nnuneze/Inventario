@@ -19,7 +19,10 @@ const SHELL = [
   './icons/icon-512.png',
   './icons/icon-512-maskable.png',
   './icons/apple-touch-icon.png',
-  './icons/favicon-32.png'
+  './icons/favicon-32.png',
+  'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
+  'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js',
+  'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js'
 ];
 
 // Instala y precachea el shell (pidiendo copias frescas)
